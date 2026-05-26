@@ -368,7 +368,58 @@ Future<void> scheduleSessionReminder({
 
 ---
 
-## Debugging with AI
+## Entry 27 — Offline Send Queue for Chat
+
+**Prompt #:** 27
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)
+**Intent:** Messages typed while offline must be queued locally and auto-delivered when connectivity returns.
+
+**Design decisions:**
+
+| Decision | Rationale |
+|----------|-----------|
+| Hive `Box<String>` for persistence | Already initialised in both apps; survives app restarts; no new dependency |
+| ID generated before send attempt | Same UUID written to queue AND Firestore so the stream deduplicates on flush success |
+| `OfflineQueueService` singleton | One queue shared across both screens; state survives screen navigation |
+| Stop-at-first-failure flush order | Preserves message ordering when connectivity is patchy |
+| 30 s periodic timer + `AppLifecycleState.resumed` trigger | Covers both background → foreground and in-app recovery scenarios |
+
+**Output snippet — queue + merge in `_sendMessage`:**
+```dart
+final id = _uuid.v4();
+final createdAt = DateTime.now();
+try {
+  await ChatService.instance.sendMessage(id: id, ...);
+} catch (_) {
+  await OfflineQueueService.instance.enqueue(id: id, ...);
+  // snackbar shown; queue shown in UI immediately
+}
+```
+
+**Output snippet — merge queued into Firestore stream:**
+```dart
+final sentIds = firestoreMessages.map((m) => m.id).toSet();
+final queued = OfflineQueueService.instance
+    .pendingFor(widget.chatId)
+    .where((m) => !sentIds.contains(m.id))
+    .toList();
+final allMessages = [...firestoreMessages, ...queued]
+  ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+```
+
+**Files changed:**
+- `shared/lib/services/offline_queue_service.dart` (created)
+- `shared/lib/services/chat_service.dart` (optional `id`/`createdAt` params)
+- `shared/lib/widgets/status_ticks.dart` (added `'queued'` → orange `Icons.schedule`)
+- `shared/lib/shared.dart` (export `offline_queue_service.dart`)
+- `guru_app/lib/features/chat/screens/conversation_screen.dart`
+- `trainer_app/lib/features/chat/screens/conversation_screen.dart`
+
+**Commit:** `feat(chat): offline send queue with Hive persistence and auto-flush`
+
+---
+
+
 
 Entries where AI identified root causes and provided diagnostic steps for real runtime errors.
 

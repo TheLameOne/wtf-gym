@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
+import 'package:uuid/uuid.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -12,7 +13,8 @@ class ConversationScreen extends ConsumerStatefulWidget {
   ConsumerState<ConversationScreen> createState() => _ConversationScreenState();
 }
 
-class _ConversationScreenState extends ConsumerState<ConversationScreen> {
+class _ConversationScreenState extends ConsumerState<ConversationScreen>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
@@ -20,19 +22,39 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   int _messageLimit = 50;
   static const _myId = AppConstants.memberDkId;
   static const _otherUserId = AppConstants.trainerAaravId;
+  static const _uuid = Uuid();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     ChatService.instance.markAsRead(widget.chatId, _myId, _otherUserId);
+    OfflineQueueService.instance.init().then((_) {
+      OfflineQueueService.instance.onQueueChanged = () {
+        if (mounted) setState(() {});
+      };
+      OfflineQueueService.instance.startAutoFlush();
+      // Flush any messages queued while the screen was closed
+      OfflineQueueService.instance.flush();
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    OfflineQueueService.instance.onQueueChanged = null;
+    OfflineQueueService.instance.stopAutoFlush();
     _controller.dispose();
     _scrollController.dispose();
     ChatService.instance.setTyping(widget.chatId, _myId, false);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      OfflineQueueService.instance.flush();
+    }
   }
 
   void _scrollToBottom() {
@@ -53,11 +75,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     _controller.clear();
     setState(() => _isSending = true);
     ChatService.instance.setTyping(widget.chatId, _myId, false);
+
+    final id = _uuid.v4();
+    final createdAt = DateTime.now();
+
     try {
       await ChatService.instance.sendMessage(
+        id: id,
         senderId: _myId,
         receiverId: _otherUserId,
         text: msg,
+        createdAt: createdAt,
       );
       _scrollToBottom();
       // Simulate the other side typing for 400–800 ms
@@ -66,6 +94,28 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       Future.delayed(Duration(milliseconds: delay), () {
         if (mounted) setState(() => _simulatingTyping = false);
       });
+    } catch (_) {
+      // Network unavailable — queue for later delivery
+      await OfflineQueueService.instance.enqueue(
+        id: id,
+        senderId: _myId,
+        receiverId: _otherUserId,
+        text: msg,
+        createdAt: createdAt,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No connection — message queued'),
+            backgroundColor: AppColors.warning,
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: AppColors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -121,7 +171,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final allMessages = snapshot.data ?? [];
+                final firestoreMessages = snapshot.data ?? [];
+                // Merge queued messages (not yet in Firestore) into the list
+                final sentIds =
+                    firestoreMessages.map((m) => m.id).toSet();
+                final queued = OfflineQueueService.instance
+                    .pendingFor(widget.chatId)
+                    .where((m) => !sentIds.contains(m.id))
+                    .toList();
+                final allMessages = [...firestoreMessages, ...queued]
+                  ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
                 // Paginate: show last _messageLimit messages; pull to load more
                 final messages = allMessages.length > _messageLimit
                     ? allMessages.sublist(allMessages.length - _messageLimit)

@@ -12,6 +12,8 @@ class StatusTicks extends StatelessWidget {
         return Icon(Icons.done_all, size: 14, color: AppColors.guruPrimary);
       case 'sent':
         return Icon(Icons.check, size: 14, color: AppColors.grey600);
+      case 'queued':
+        return Icon(Icons.schedule, size: 14, color: AppColors.warning);
       default:
         return Icon(Icons.check, size: 14, color: AppColors.grey400);
     }

@@ -49,14 +49,16 @@ class ChatService {
   }
 
   Future<void> sendMessage({
+    String? id,
     required String senderId,
     required String receiverId,
     required String text,
     bool isSystemMessage = false,
+    DateTime? createdAt,
   }) async {
     final cId = chatId(senderId, receiverId);
-    final msgId = _uuid.v4();
-    final now = DateTime.now();
+    final msgId = id ?? _uuid.v4();
+    final now = createdAt ?? DateTime.now();
 
     final message = MessageModel(
       id: msgId,
