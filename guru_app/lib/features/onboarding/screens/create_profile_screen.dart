@@ -97,7 +97,7 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: AppSpacing.md),
-                    const Text('Your Name', style: AppTextStyles.label),
+                    Text('Your Name', style: AppTextStyles.label),
                     const SizedBox(height: AppSpacing.sm),
                     TextFormField(
                       controller: _nameController,
@@ -108,8 +108,7 @@ class _CreateProfileScreenState extends ConsumerState<CreateProfileScreen> {
                           : 'Name cannot be empty',
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    const Text('Choose Your Trainer',
-                        style: AppTextStyles.label),
+                    Text('Choose Your Trainer', style: AppTextStyles.label),
                     const SizedBox(height: AppSpacing.sm),
                     if (_trainers.isEmpty)
                       const Text('No trainers available')

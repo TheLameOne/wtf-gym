@@ -23,20 +23,45 @@ class CtaButton extends StatelessWidget {
     final primary = Theme.of(context).colorScheme.primary;
     switch (style) {
       case CtaStyle.primary:
-        return ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          child: _child(AppColors.white),
-        )
-            .animate(target: isLoading ? 1 : 0)
-            .scaleXY(begin: 1, end: 0.97, duration: 100.ms);
+        final disabled = isLoading || onPressed == null;
+        return SizedBox(
+          height: 52,
+          width: double.infinity,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: disabled
+                    ? [AppColors.grey400, AppColors.grey400]
+                    : [
+                        primary,
+                        Color.lerp(primary, AppColors.black, 0.28)!,
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: disabled ? null : onPressed,
+                borderRadius: BorderRadius.circular(12),
+                splashColor: AppColors.white.withOpacity(0.18),
+                child: Center(child: _child(AppColors.white)),
+              ),
+            ),
+          ),
+        ).animate(target: isLoading ? 1 : 0).scaleXY(
+            begin: 1, end: 0.97, duration: 100.ms);
       case CtaStyle.secondary:
         return OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
-            side: BorderSide(color: primary),
+            side: BorderSide(color: primary, width: 1.5),
             minimumSize: const Size.fromHeight(52),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
           ),
           child: _child(primary),
         );
@@ -60,13 +85,13 @@ class CtaButton extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18),
+          Icon(icon, size: 18, color: color),
           const SizedBox(width: AppSpacing.sm),
-          Text(label),
+          Text(label, style: AppTextStyles.label.copyWith(color: color)),
         ],
       );
     }
-    return Text(label);
+    return Text(label, style: AppTextStyles.label.copyWith(color: color));
   }
 }
 

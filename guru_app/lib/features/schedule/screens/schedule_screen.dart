@@ -170,8 +170,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               ),
             ),
             const Divider(),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xs),
               child: Text('Available Slots', style: AppTextStyles.h3),
             ),
@@ -202,7 +202,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Note for Trainer (optional)',
+                  Text('Note for Trainer (optional)',
                       style: AppTextStyles.label),
                   const SizedBox(height: AppSpacing.xs),
                   TextField(

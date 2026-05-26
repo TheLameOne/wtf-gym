@@ -20,67 +20,133 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-            icon: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-            onPressed: () => ref.read(themeNotifierProvider.notifier).toggle(),
+            icon: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+            onPressed: () =>
+                ref.read(themeNotifierProvider.notifier).toggle(),
           ),
         ],
       ),
       body: Stack(
         children: [
+          _GradientBackground(
+              primary: AppColors.guruPrimary, isDark: isDark),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+            child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: AppSpacing.sm),
-                  Text('Hey DK! 👋', style: AppTextStyles.h1),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text('What would you like to do today?',
-                      style: AppTextStyles.bodyLarge
-                          .copyWith(color: AppColors.grey600)),
-                  const SizedBox(height: AppSpacing.xl),
-                  _HomeCard(
-                    icon: Icons.chat_bubble_outline_rounded,
-                    title: 'Chat with Trainer',
-                    subtitle: 'Message Aarav anytime',
-                    color: AppColors.guruPrimary,
-                    onTap: () => context.push(
-                        '/chat/${ChatService.chatId(AppConstants.memberDkId, AppConstants.trainerAaravId)}'),
-                    index: 0,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _HomeCard(
-                    icon: Icons.calendar_month_rounded,
-                    title: 'Schedule Call',
-                    subtitle: 'Book a video session',
-                    color: AppColors.success,
-                    onTap: () => context.push('/schedule'),
-                    index: 1,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _HomeCard(
-                    icon: Icons.history_rounded,
-                    title: 'My Sessions',
-                    subtitle: 'View past sessions',
-                    color: AppColors.warning,
-                    onTap: () => context.push('/sessions'),
-                    index: 2,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _HomeCard(
-                    icon: Icons.pending_actions_rounded,
-                    title: 'My Requests',
-                    subtitle: 'Check call request status',
-                    color: AppColors.guruPrimary,
-                    onTap: () => context.push('/requests'),
-                    index: 3,
+                  _HeroSection(isDark: isDark),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+                    child: Column(
+                      children: [
+                        _HomeCard(
+                          icon: Icons.chat_bubble_rounded,
+                          title: 'Chat with Trainer',
+                          subtitle: 'Message Aarav anytime',
+                          color: AppColors.guruPrimary,
+                          onTap: () => context.push(
+                              '/chat/${ChatService.chatId(AppConstants.memberDkId, AppConstants.trainerAaravId)}'),
+                          index: 0,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _HomeCard(
+                          icon: Icons.calendar_month_rounded,
+                          title: 'Schedule Call',
+                          subtitle: 'Book a video session',
+                          color: AppColors.success,
+                          onTap: () => context.push('/schedule'),
+                          index: 1,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _HomeCard(
+                          icon: Icons.history_rounded,
+                          title: 'My Sessions',
+                          subtitle: 'View past sessions',
+                          color: AppColors.brand,
+                          onTap: () => context.push('/sessions'),
+                          index: 2,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _HomeCard(
+                          icon: Icons.pending_actions_rounded,
+                          title: 'My Requests',
+                          subtitle: 'Check call request status',
+                          color: AppColors.warning,
+                          onTap: () => context.push('/requests'),
+                          index: 3,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           const DevPanelOverlay(),
+        ],
+      ),
+    );
+  }
+}
+
+class _GradientBackground extends StatelessWidget {
+  final Color primary;
+  final bool isDark;
+
+  const _GradientBackground({required this.primary, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 240,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [primary.withOpacity(0.22), AppColors.darkBg]
+                : [primary.withOpacity(0.10), AppColors.white],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroSection extends StatelessWidget {
+  final bool isDark;
+
+  const _HeroSection({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Hey DK! 💪',
+            style: AppTextStyles.h1.copyWith(fontSize: 34),
+          )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.2, duration: 400.ms, curve: Curves.easeOut),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'What would you like to do today?',
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: isDark ? AppColors.grey400 : AppColors.grey600,
+            ),
+          ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
         ],
       ),
     );
@@ -106,54 +172,79 @@ class _HomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: AppColors.white,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.darkCard : AppColors.white;
+    return Material(
+      color: cardBg,
+      borderRadius: BorderRadius.circular(16),
+      elevation: isDark ? 0 : 2,
+      shadowColor: color.withOpacity(0.14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: color.withOpacity(0.08),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Container(width: 4, color: color),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child:
+                              Icon(icon, color: AppColors.white, size: 26),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: AppTextStyles.h3),
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: AppTextStyles.body.copyWith(
+                                  color: isDark
+                                      ? AppColors.grey400
+                                      : AppColors.grey600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.arrow_forward_rounded,
+                              size: 16, color: color),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color, size: 26),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.h3),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: AppTextStyles.body
-                          .copyWith(color: AppColors.grey600)),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: 16, color: AppColors.grey400),
-          ],
+          ),
         ),
       ),
     )
         .animate()
-        .fadeIn(delay: Duration(milliseconds: 100 * index))
-        .slideY(begin: 0.15);
+        .fadeIn(
+            delay: Duration(milliseconds: 100 * index), duration: 350.ms)
+        .slideX(begin: 0.12, duration: 350.ms, curve: Curves.easeOut);
   }
 }

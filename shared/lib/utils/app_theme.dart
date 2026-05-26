@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // ─── Brand colours ──────────────────────────────────────────────────────────
 class AppColors {
@@ -7,7 +8,11 @@ class AppColors {
   static const guruPrimary = Color(0xFF1769E0);
   static const trainerPrimary = Color(0xFFE50914);
 
-  static const success = Color(0xFF12B76A);
+  // WTF Gym brand accent — Energy Orange (design system)
+  static const brand = Color(0xFFF97316);
+  static const brandLight = Color(0xFFFB923C);
+
+  static const success = Color(0xFF22C55E);
   static const warning = Color(0xFFF79009);
   static const error = Color(0xFFD92D20);
 
@@ -19,6 +24,13 @@ class AppColors {
   static const grey800 = Color(0xFF424242);
   static const grey900 = Color(0xFF212121);
 
+  // Dark palette (design system — #1F2937 base)
+  static const darkBg = Color(0xFF1F2937);
+  static const darkSurface = Color(0xFF111827);
+  static const darkCard = Color(0xFF374151);
+  static const darkBorder = Color(0xFF4B5563);
+  static const textOnDark = Color(0xFFF8FAFC);
+
   static const white = Color(0xFFFFFFFF);
   static const black = Color(0xFF000000);
 
@@ -26,17 +38,24 @@ class AppColors {
   static const trainerBubble = Color(0xFFFFEBEB);
 }
 
-// ─── Text styles ─────────────────────────────────────────────────────────────
+// ─── Text styles — Barlow Condensed (headings) + Barlow (body) ───────────────
 class AppTextStyles {
   AppTextStyles._();
 
-  static const h1 = TextStyle(fontSize: 24, fontWeight: FontWeight.w600);
-  static const h2 = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
-  static const h3 = TextStyle(fontSize: 18, fontWeight: FontWeight.w600);
-  static const bodyLarge = TextStyle(fontSize: 16, fontWeight: FontWeight.w400);
-  static const body = TextStyle(fontSize: 14, fontWeight: FontWeight.w400);
-  static const caption = TextStyle(fontSize: 12, fontWeight: FontWeight.w400);
-  static const label = TextStyle(fontSize: 14, fontWeight: FontWeight.w500);
+  static TextStyle get h1 => GoogleFonts.barlowCondensed(
+      fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: 0.4);
+  static TextStyle get h2 => GoogleFonts.barlowCondensed(
+      fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 0.3);
+  static TextStyle get h3 => GoogleFonts.barlowCondensed(
+      fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.2);
+  static TextStyle get bodyLarge =>
+      GoogleFonts.barlow(fontSize: 16, fontWeight: FontWeight.w400);
+  static TextStyle get body =>
+      GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w400);
+  static TextStyle get caption =>
+      GoogleFonts.barlow(fontSize: 12, fontWeight: FontWeight.w400);
+  static TextStyle get label => GoogleFonts.barlow(
+      fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.2);
 }
 
 // ─── Spacing ─────────────────────────────────────────────────────────────────
@@ -66,12 +85,30 @@ class AppTheme {
 
   static ThemeData _buildTheme(Color primary, Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF121212) : AppColors.white;
-    final surfaceColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
-    final cardBorder = isDark ? const Color(0xFF2C2C2C) : AppColors.grey200;
-    final inputFill = isDark ? const Color(0xFF2C2C2C) : AppColors.grey100;
-    final appBarBg = isDark ? const Color(0xFF1A1A1A) : AppColors.white;
-    final appBarFg = isDark ? AppColors.white : AppColors.grey900;
+    final bgColor = isDark ? AppColors.darkBg : AppColors.white;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.white;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.white;
+    final cardBorder = isDark ? AppColors.darkBorder : AppColors.grey200;
+    final inputFill = isDark ? AppColors.darkCard : AppColors.grey100;
+    final appBarBg = isDark ? AppColors.darkSurface : AppColors.white;
+    final appBarFg = isDark ? AppColors.textOnDark : AppColors.grey900;
+
+    final textTheme = GoogleFonts.barlowTextTheme().copyWith(
+      displayLarge: GoogleFonts.barlowCondensed(
+          fontSize: 28, fontWeight: FontWeight.w700),
+      headlineLarge: GoogleFonts.barlowCondensed(
+          fontSize: 24, fontWeight: FontWeight.w700),
+      titleLarge: GoogleFonts.barlowCondensed(
+          fontSize: 22, fontWeight: FontWeight.w700),
+      titleMedium: GoogleFonts.barlowCondensed(
+          fontSize: 18, fontWeight: FontWeight.w600),
+      bodyLarge: GoogleFonts.barlow(fontSize: 16, fontWeight: FontWeight.w400),
+      bodyMedium:
+          GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w400),
+      bodySmall: GoogleFonts.barlow(fontSize: 12, fontWeight: FontWeight.w400),
+      labelLarge:
+          GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w600),
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -85,10 +122,15 @@ class AppTheme {
         foregroundColor: appBarFg,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: AppTextStyles.h2.copyWith(color: appBarFg),
+        titleTextStyle: GoogleFonts.barlowCondensed(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: appBarFg,
+          letterSpacing: 0.3,
+        ),
       ),
       cardTheme: CardThemeData(
-        color: surfaceColor,
+        color: cardColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -115,7 +157,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: AppTextStyles.label,
+          textStyle: GoogleFonts.barlow(
+              fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -123,14 +166,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
         ),
       ),
-      textTheme: const TextTheme(
-        displayLarge: AppTextStyles.h1,
-        titleLarge: AppTextStyles.h2,
-        bodyLarge: AppTextStyles.bodyLarge,
-        bodyMedium: AppTextStyles.body,
-        bodySmall: AppTextStyles.caption,
-        labelLarge: AppTextStyles.label,
-      ),
+      textTheme: textTheme,
     );
   }
 }

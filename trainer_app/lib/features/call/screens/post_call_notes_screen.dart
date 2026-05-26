@@ -68,7 +68,7 @@ class _PostCallNotesScreenState extends State<PostCallNotesScreen> {
             Text("Add notes for this member's session",
                 style: AppTextStyles.body.copyWith(color: AppColors.grey600)),
             const SizedBox(height: AppSpacing.xl),
-            const Text('Trainer Notes', style: AppTextStyles.label),
+            Text('Trainer Notes', style: AppTextStyles.label),
             const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: _notesController,

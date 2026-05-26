@@ -18,30 +18,47 @@ class AppBarBadge extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(title),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(height: 2),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 2),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: roleColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
+              color: roleColor,
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              roleLabel,
-              style: AppTextStyles.caption
-                  .copyWith(color: roleColor, fontWeight: FontWeight.w600),
+              roleLabel.toUpperCase(),
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                fontSize: 10,
+              ),
             ),
           ),
         ],
       ),
       actions: actions,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(3),
+        child: Container(
+          height: 3,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [roleColor, roleColor.withOpacity(0.3)],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 3);
 }

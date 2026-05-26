@@ -8,11 +8,11 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
   ThemeNotifier(ThemeMode initial) : super(initial);
 
   Future<void> toggle() async {
-    final next =
-        state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     state = next;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kThemeKey, next == ThemeMode.dark ? 'dark' : 'light');
+    await prefs.setString(
+        _kThemeKey, next == ThemeMode.dark ? 'dark' : 'light');
   }
 }
 
@@ -24,7 +24,16 @@ final themeNotifierProvider =
 });
 
 /// Call in [main()] after [WidgetsFlutterBinding.ensureInitialized()].
-/// Returns the persisted [ThemeMode] so the [ProviderScope] override can be set.
+/// Loads the persisted [ThemeMode] from SharedPreferences and initializes the provider.
+Future<void> initThemeProvider(WidgetRef ref) async {
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getString(_kThemeKey);
+  final themeMode = raw == 'dark' ? ThemeMode.dark : ThemeMode.light;
+  // Update the provider's state to match the persisted value
+  ref.read(themeNotifierProvider.notifier).state = themeMode;
+}
+
+/// Internal: Loads the persisted [ThemeMode] from SharedPreferences.
 Future<ThemeMode> loadPersistedTheme() async {
   final prefs = await SharedPreferences.getInstance();
   final raw = prefs.getString(_kThemeKey);
