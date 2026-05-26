@@ -55,6 +55,13 @@ class _RequestCardState extends State<_RequestCard> {
     setState(() => _isApproving = true);
     try {
       await CallRequestService.instance.approveRequest(widget.request);
+      await NotificationService.instance.scheduleSessionReminder(
+        requestId: widget.request.id,
+        scheduledFor: widget.request.scheduledFor,
+        title: 'Session starting soon',
+        body:
+            'Your session with ${widget.request.memberName} starts in 10 minutes.',
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Request approved!')),

@@ -86,9 +86,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
         return;
       }
 
+      final requestId = DateTime.now().millisecondsSinceEpoch.toString();
       await CallRequestService.instance.createRequest(
         CallRequestModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: requestId,
           memberId: AppConstants.memberDkId,
           trainerId: AppConstants.trainerAaravId,
           requestedAt: DateTime.now(),
@@ -100,6 +101,12 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           memberName: 'DK',
           trainerName: 'Aarav',
         ),
+      );
+      await NotificationService.instance.scheduleSessionReminder(
+        requestId: requestId,
+        scheduledFor: _selectedSlot!,
+        title: 'Session starting soon',
+        body: 'Your session with Aarav starts in 10 minutes.',
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
