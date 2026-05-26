@@ -260,3 +260,32 @@
 
 **Files changed:** `guru_app/lib/features/sessions/screens/sessions_screen.dart`, `trainer_app/lib/features/sessions/screens/sessions_screen.dart`, `guru_app/pubspec.yaml`, `trainer_app/pubspec.yaml`  
 **Commit:** `feat(sessions): tap-to-detail modal, share export, schedule CTA on empty state`
+
+---
+
+## Entry 25 — 100ms Integration Audit & Fixes
+
+**Prompt pattern:** Verify full 100ms integration spec: token server endpoint + README, room lifecycle, role permissions (trainer end-room vs member leave), edge cases (background/foreground, network loss, token expiry), post-call sheets, ARCHITECTURE.md  
+**Findings:**
+
+- **Token server `GET /token?userId=&role=&roomId=` ✅**: Endpoint exists in `token_server/server.js`, signs HS256 JWT, returns `{ token }`. Includes validation for required params and role whitelist.
+- **Token server README ❌ → Fixed**: No `README.md` existed in `token_server/`. Created `token_server/README.md` documenting prerequisites, setup steps (`npm install`, `.env` config), all endpoints (`/health`, `GET /token`, `POST /room`), response shapes, fallback behaviour, and a flow diagram.
+- **Room lifecycle: approve → room create → RoomMeta ✅**: `CallRequestService.approveRequest()` calls `POST /room`, stores `RoomMetaModel` (with `hmsRoomId`, roles `host`/`guest`), updates status, sends system message.
+- **Pre-join: fetch token → join with role ✅**: Both `PreJoinScreen` implementations call `HMSService.fetchAuthToken` with the role from `RoomMetaModel`, then `HMSService.join`.
+- **Reconnect handler ✅**: `onReconnecting` → `HMSCallState.reconnecting` (spinner); `onReconnected` → `HMSCallState.connected` (call resumes).
+- **Trainer ends call for both ❌ → Fixed**: Trainer's call screen `onLeave` was calling `_hms.leave()` (self-only). Changed to `_hms.endRoom()` — sends `endRoom` to 100ms, which fires `onRemovedFromRoom` on the member's side → `HMSCallState.ended` → post-call navigation triggered for both participants.
+- **Member cannot end for both ✅**: Member's call screen uses `_hms.leave()` — only leaves self, does not remove others.
+- **Background/foreground — camera pause ❌ → Fixed**: No `WidgetsBindingObserver` existed on the call screens. Added `with WidgetsBindingObserver` to `_CallScreenState` in both apps. On `AppLifecycleState.paused`, camera is auto-muted (with `_cameraWasAutoPaused` flag). On `AppLifecycleState.resumed`, camera is restored if it was auto-paused. Observer registered/deregistered in `initState`/`dispose`.
+- **Network loss ✅**: Handled via `onReconnecting`/`onReconnected` in `HMSService`.
+- **Token expiry ✅ (by design)**: Tokens are valid 24 h; no session exceeds that. Documented in ARCHITECTURE.md.
+- **`onAudioDeviceChanged` no-op ❌ → Fixed**: Was an empty override. Now logs `currentAudioDevice` and `availableAudioDevice` via `AppLogger.rtc`. 100ms SDK handles actual routing automatically.
+- **Post-call sheets ✅**: Member: 1–5 star rating + optional 200-char note → `updateRating()`. Trainer: notes TextField + "Mark as Complete" → `updateTrainerNotes()`. (Verified Entry 23, unchanged.)
+- **ARCHITECTURE.md ❌ → Updated**: Added **100ms Video Call — Implementation Notes** section: token format/expiry, room-creation flow, role permissions table (trainer `endRoom` vs member `leave`), and edge-case handling table (network loss, background, token expiry, audio device switch).
+
+**Files changed:**  
+`token_server/README.md` (created),  
+`trainer_app/lib/features/call/screens/call_screen.dart` (endRoom + lifecycle observer),  
+`guru_app/lib/features/call/screens/call_screen.dart` (lifecycle observer),  
+`shared/lib/services/hms_service.dart` (onAudioDeviceChanged log),  
+`ARCHITECTURE.md` (100ms section added)  
+**Commit:** `feat(call): token-server README, trainer endRoom, lifecycle camera-pause, ARCHITECTURE 100ms docs`
