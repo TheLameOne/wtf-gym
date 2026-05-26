@@ -4,6 +4,18 @@
 
 ---
 
+## Quick Start (one command)
+
+> Requires two Android emulators running and the token server already started (see §1 below).
+
+```powershell
+.\run_all.ps1
+```
+
+This opens both apps in separate terminal windows with `flutter pub get && flutter run`.
+
+---
+
 ## Architecture
 
 ```
