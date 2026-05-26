@@ -85,7 +85,7 @@ class CallRequestService {
           .update({'status': 'approved'});
 
       // 4. Send system message in chat
-      final formattedTime = _formatTime(request.scheduledFor);
+      final formattedTime = _formatDateTime(request.scheduledFor);
       await ChatService.instance.sendMessage(
         senderId: request.trainerId,
         receiverId: request.memberId,
@@ -162,13 +162,6 @@ class CallRequestService {
     }
     // Fallback: use requestId as room identifier
     return 'room_$requestId';
-  }
-
-  String _formatTime(DateTime dt) {
-    final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
-    final period = dt.hour < 12 ? 'AM' : 'PM';
-    final min = dt.minute.toString().padLeft(2, '0');
-    return '$hour:$min $period';
   }
 
   String _formatDateTime(DateTime dt) {

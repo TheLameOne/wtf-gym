@@ -81,9 +81,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             stream: CallRequestService.instance
                 .trainerRequestsStream(AppConstants.trainerAaravId),
             builder: (context, snap) {
-              final joinable = (snap.data ?? [])
-                  .where((r) => r.isJoinable)
-                  .toList();
+              final joinable =
+                  (snap.data ?? []).where((r) => r.isJoinable).toList();
               if (joinable.isEmpty) return const SizedBox.shrink();
               return Stack(
                 alignment: Alignment.center,
@@ -130,6 +129,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                     .markAsRead(widget.chatId, _myId, _otherUserId);
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => _scrollToBottom());
+                if (messages.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.xl),
+                      child: Text(
+                        'No messages yet. Start the conversation.',
+                        style: TextStyle(color: AppColors.grey400),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
                 return RefreshIndicator(
                   onRefresh: () async {
                     setState(() => _messageLimit += 50);

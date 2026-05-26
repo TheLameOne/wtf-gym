@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -64,7 +65,14 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+            .showSnackBar(SnackBar(
+              content: Text('Error: $e'),
+              action: SnackBarAction(
+                label: 'Copy error',
+                onPressed: () =>
+                    Clipboard.setData(ClipboardData(text: 'Error: $e')),
+              ),
+            ));
       }
     } finally {
       if (mounted) setState(() => _isJoining = false);
@@ -81,6 +89,12 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: AppSpacing.xl),
+            Text(
+              'Ready to join? Check mic and camera.',
+              style: AppTextStyles.body.copyWith(color: AppColors.grey600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.md),
             // Camera preview (shows after join; placeholder shown pre-join
             // since HMSSDK requires join before capturing local video)
             Container(
@@ -89,7 +103,8 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
               decoration: BoxDecoration(
                 color: Colors.black87,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.guruPrimary.withOpacity(0.4)),
+                border:
+                    Border.all(color: AppColors.guruPrimary.withOpacity(0.4)),
               ),
               child: Stack(
                 alignment: Alignment.center,
@@ -106,8 +121,7 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text('DK',
-                          style:
-                              TextStyle(color: Colors.white, fontSize: 12)),
+                          style: TextStyle(color: Colors.white, fontSize: 12)),
                     ),
                   ),
                   if (!_camEnabled)

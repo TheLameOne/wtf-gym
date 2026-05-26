@@ -16,6 +16,21 @@ class _PostCallRatingScreenState extends State<PostCallRatingScreen> {
   final _noteController = TextEditingController();
   bool _isSubmitting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session saved to your logs.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> _submit() async {
     if (_stars == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,7 +43,9 @@ class _PostCallRatingScreenState extends State<PostCallRatingScreen> {
       await SessionLogService.instance.updateRating(
         widget.sessionLogId,
         _stars,
-        _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

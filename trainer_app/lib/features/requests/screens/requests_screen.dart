@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 
@@ -62,7 +63,14 @@ class _RequestCardState extends State<_RequestCard> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+            .showSnackBar(SnackBar(
+              content: Text('Error: $e'),
+              action: SnackBarAction(
+                label: 'Copy error',
+                onPressed: () =>
+                    Clipboard.setData(ClipboardData(text: 'Error: $e')),
+              ),
+            ));
       }
     } finally {
       if (mounted) setState(() => _isApproving = false);

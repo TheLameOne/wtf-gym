@@ -137,5 +137,5 @@ class _DevPanelFloat extends StatelessWidget {
   const _DevPanelFloat();
 
   @override
-  Widget build(BuildContext context) => const DevPanel();
+  Widget build(BuildContext context) => const DevPanel(appName: 'WTF Trainer');
 }

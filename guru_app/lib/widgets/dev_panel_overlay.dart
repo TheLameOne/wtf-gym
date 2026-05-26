@@ -6,6 +6,6 @@ class DevPanelOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DevPanel();
+    return const DevPanel(appName: 'WTF Guru');
   }
 }

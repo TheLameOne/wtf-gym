@@ -95,12 +95,15 @@ class _RequestCard extends StatelessWidget {
               Text(request.note!,
                   style: AppTextStyles.body.copyWith(color: AppColors.grey600)),
             ],
-            if (request.declineReason != null &&
-                request.declineReason!.isNotEmpty) ...[
+            if (request.isDeclined) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text('Reason: ${request.declineReason}',
-                  style:
-                      AppTextStyles.caption.copyWith(color: AppColors.error)),
+              Text(
+                request.declineReason != null &&
+                        request.declineReason!.isNotEmpty
+                    ? 'Call request declined. Reason: ${request.declineReason}.'
+                    : 'Call request declined.',
+                style: AppTextStyles.caption.copyWith(color: AppColors.error),
+              ),
             ],
             if (request.isJoinable) ...[
               const SizedBox(height: AppSpacing.sm),

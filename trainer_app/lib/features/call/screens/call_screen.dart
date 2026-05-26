@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 import 'package:shared/shared.dart';
-
-class CallScreen extends ConsumerStatefulWidget {
   final String callRequestId;
   const CallScreen({super.key, required this.callRequestId});
 
@@ -45,8 +44,15 @@ class _CallScreenState extends ConsumerState<CallScreen>
   void _onPeersChanged(List<HMSPeer> peers) => setState(() {});
   void _onError(String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Call error: $msg')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Call error: $msg'),
+            action: SnackBarAction(
+              label: 'Copy error',
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: 'Call error: $msg')),
+            ),
+          ));
     }
   }
 

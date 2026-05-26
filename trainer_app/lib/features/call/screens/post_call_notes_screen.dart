@@ -15,6 +15,21 @@ class _PostCallNotesScreenState extends State<PostCallNotesScreen> {
   final _notesController = TextEditingController();
   bool _isSaving = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session saved to your logs.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> _save() async {
     setState(() => _isSaving = true);
     try {

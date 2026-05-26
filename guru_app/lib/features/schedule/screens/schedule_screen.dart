@@ -103,7 +103,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pending approval by Aarav')),
+          const SnackBar(
+              content: Text('Call requested. Waiting for trainer approval.')),
         );
         context.push('/requests');
       }

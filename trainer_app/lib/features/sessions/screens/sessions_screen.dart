@@ -146,8 +146,7 @@ void _showDetailModal(BuildContext context, SessionLogModel log,
           _DetailRow(label: 'Member', value: log.memberName),
           _DetailRow(label: 'Date', value: log.startedAt.toFullLabel()),
           _DetailRow(
-              label: 'Duration',
-              value: log.durationSec.toSessionDuration()),
+              label: 'Duration', value: log.durationSec.toSessionDuration()),
           if ((log.rating ?? 0) > 0) ...[
             const SizedBox(height: AppSpacing.xs),
             Row(
@@ -207,8 +206,7 @@ String _buildShareText(SessionLogModel log) {
     ..writeln('Date: ${log.startedAt.toFullLabel()}')
     ..writeln('Duration: ${log.durationSec.toSessionDuration()}');
   if (log.rating != null && log.rating! > 0) {
-    buf.writeln(
-        'Rating: ${'★' * log.rating!}${'☆' * (5 - log.rating!)}');
+    buf.writeln('Rating: ${'★' * log.rating!}${'☆' * (5 - log.rating!)}');
   }
   if (log.memberNotes?.isNotEmpty == true) {
     buf.writeln('Member notes: ${log.memberNotes}');
@@ -233,8 +231,8 @@ class _DetailRow extends StatelessWidget {
           SizedBox(
             width: 80,
             child: Text(label,
-                style: AppTextStyles.caption
-                    .copyWith(color: AppColors.grey600)),
+                style:
+                    AppTextStyles.caption.copyWith(color: AppColors.grey600)),
           ),
           Expanded(child: Text(value, style: AppTextStyles.body)),
         ],
@@ -363,8 +361,8 @@ class _SessionCardState extends State<_SessionCard> {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2))
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2))
                               : const Text('Save'),
                         ),
                       ],

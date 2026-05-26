@@ -27,6 +27,7 @@ class CallRequestModel {
   bool get isApproved => status == 'approved';
   bool get isDeclined => status == 'declined';
   bool get isCancelled => status == 'cancelled';
+
   /// True when approved AND within the 10-minute join window (or past it).
   bool get isJoinable =>
       isApproved &&
