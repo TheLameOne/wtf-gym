@@ -12,12 +12,15 @@ class CallScreen extends ConsumerStatefulWidget {
   ConsumerState<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends ConsumerState<CallScreen> {
+class _CallScreenState extends ConsumerState<CallScreen>
+    with WidgetsBindingObserver {
   final _hms = HMSService.instance;
+  bool _cameraWasAutoPaused = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _hms.onStateChanged = _onStateChanged;
     _hms.onPeersChanged = _onPeersChanged;
     _hms.onError = _onError;
@@ -62,7 +65,23 @@ class _CallScreenState extends ConsumerState<CallScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.paused) {
+      if (!_hms.isCameraMuted) {
+        _cameraWasAutoPaused = true;
+        _hms.toggleCamera();
+      }
+    } else if (lifecycleState == AppLifecycleState.resumed) {
+      if (_cameraWasAutoPaused) {
+        _cameraWasAutoPaused = false;
+        _hms.toggleCamera();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _hms.onStateChanged = null;
     _hms.onPeersChanged = null;
     _hms.onError = null;
@@ -126,8 +145,8 @@ class _CallScreenState extends ConsumerState<CallScreen> {
                                 .map((p) => p.name)
                                 .firstOrNull ??
                             'Trainer',
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 12),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 12),
                       ),
                     ),
                   ),
@@ -176,8 +195,8 @@ class _CallScreenState extends ConsumerState<CallScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text('You',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 10)),
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 10)),
                       ),
                     ),
                   ],

@@ -198,7 +198,9 @@ class HMSService implements HMSUpdateListener, HMSActionResultListener {
   @override
   void onAudioDeviceChanged(
       {HMSAudioDevice? currentAudioDevice,
-      List<HMSAudioDevice>? availableAudioDevice}) {}
+      List<HMSAudioDevice>? availableAudioDevice}) {
+    AppLogger.rtc('Audio device changed: $currentAudioDevice, available: $availableAudioDevice');
+  }
 
   @override
   void onSessionStoreAvailable({HMSSessionStore? hmsSessionStore}) {}
