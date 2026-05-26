@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 import 'package:shared/shared.dart';
+
+class CallScreen extends ConsumerStatefulWidget {
   final String callRequestId;
   const CallScreen({super.key, required this.callRequestId});
 
