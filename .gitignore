@@ -1,0 +1,9 @@
+*.secret
+token_server/.env
+token_server/node_modules/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.g.dart
+.env
