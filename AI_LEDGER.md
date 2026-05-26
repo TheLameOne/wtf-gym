@@ -200,3 +200,23 @@
 
 **Files changed:** `guru_app/lib/features/schedule/screens/schedule_screen.dart`, `shared/lib/services/call_request_service.dart`  
 **Commit:** `feat(schedule): 30-min slots, conflict check, correct toast and system message`
+
+---
+
+## Entry 22 — Chat QA: Bubble Colours, Status Ticks, Typing Simulation, Pull-to-Load History
+
+**Prompt pattern:** Verify full chat spec: chat list (unread badge, last preview, "5m ago"), bubble left/right + role colour, typing simulation 400–800ms, status ticks single/double, pull to load history, scroll to bottom, quick reply chips  
+**Findings:**
+
+- **Chat list ✅**: `chatListStream` + `meta.unreadFor(userId)` badge + `meta.lastMessage` subtitle (ellipsis) + `timeago.format` timestamp. All correct in both apps.
+- **Bubble UI ✅**: `isFromMe` controls left/right alignment. `MessageBubble` uses `AppColors.memberBubble` (#E3F0FF blue) and `AppColors.trainerBubble` (#FFEBEB red).
+- **Bubble role colour ❌ → Fixed**: Colour was driven by `isFromMe`, so in `trainer_app` the trainer's own messages were blue and member's were red — backwards. Fixed by deriving colour from `message.senderId == AppConstants.memberDkId` (role-based, not perspective-based). Same colour regardless of which app is viewing.
+- **Status tick `sent` = single check ❌ → Fixed**: `StatusTicks` was rendering `done_all` (double-check grey) for `'sent'`. Fixed to `Icons.check` (single grey). `'read'` keeps `done_all` blue.
+- **Typing indicator (real) ✅**: `typingStream` drives `TypingIndicator` widget; `setTyping` called on each keystroke, cleared on send/dispose.
+- **Typing simulation 400–800ms ❌ → Fixed**: After `sendMessage()` resolves, both conversation screens now set `_simulatingTyping = true` for a `Random().nextInt(401) + 400` ms window. The typing indicator stream builder checks `snap.data == true || _simulatingTyping`.
+- **Scroll to bottom on new message ✅**: `_scrollToBottom()` called via `addPostFrameCallback` on every stream rebuild.
+- **Pull to load history ❌ → Fixed**: No pagination existed. Added `_messageLimit = 50`; stream data is sliced to `allMessages.sublist(length - _messageLimit)`; `RefreshIndicator.onRefresh` increments limit by 50 and triggers rebuild. `AlwaysScrollableScrollPhysics` ensures pull works even with few messages.
+- **Quick replies ✅**: Three chips `"Got it 👍"`, `"Can we talk at 6?"`, `"Share plan?"` from `AppConstants.quickReplies`. Horizontally scrollable row. Coloured with role accent per app.
+
+**Files changed:** `shared/lib/widgets/message_bubble.dart`, `shared/lib/widgets/status_ticks.dart`, `guru_app/lib/features/chat/screens/conversation_screen.dart`, `trainer_app/lib/features/chat/screens/conversation_screen.dart`  
+**Commit:** `fix(chat): role-based bubble colours, single-check sent tick, simulated typing, pull-to-load history`
