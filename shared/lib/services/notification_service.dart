@@ -73,7 +73,8 @@ class NotificationService {
       notifId,
       title,
       body,
-      tz.TZDateTime.from(reminderTime, tz.local),
+      tz.TZDateTime.fromMillisecondsSinceEpoch(
+          tz.UTC, reminderTime.millisecondsSinceEpoch),
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
