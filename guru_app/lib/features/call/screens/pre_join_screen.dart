@@ -68,15 +68,14 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
       if (mounted) context.push('/call/${widget.callRequestId}');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-              content: Text('Error: $e'),
-              action: SnackBarAction(
-                label: 'Copy error',
-                onPressed: () =>
-                    Clipboard.setData(ClipboardData(text: 'Error: $e')),
-              ),
-            ));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $e'),
+          action: SnackBarAction(
+            label: 'Copy error',
+            onPressed: () =>
+                Clipboard.setData(ClipboardData(text: 'Error: $e')),
+          ),
+        ));
       }
     } finally {
       if (mounted) setState(() => _isJoining = false);

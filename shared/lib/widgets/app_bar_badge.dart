@@ -25,8 +25,7 @@ class AppBarBadge extends StatelessWidget implements PreferredSizeWidget {
           Text(title),
           const SizedBox(height: 2),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: roleColor,
               borderRadius: BorderRadius.circular(4),

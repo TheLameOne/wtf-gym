@@ -8,13 +8,13 @@
 
 Each entry follows this structure:
 
-| Field | Description |
-|-------|-------------|
-| **Prompt #** | Sequential entry number |
-| **Tool** | AI tool used (GitHub Copilot powered by Claude Sonnet 4.6) |
-| **Intent** | What was requested (e.g., "generate Riverpod provider for auth") |
-| **Output snippet** | Key generated or verified code block |
-| **Commit link** | `git log --oneline` SHA where the code landed |
+| Field              | Description                                                      |
+| ------------------ | ---------------------------------------------------------------- |
+| **Prompt #**       | Sequential entry number                                          |
+| **Tool**           | AI tool used (GitHub Copilot powered by Claude Sonnet 4.6)       |
+| **Intent**         | What was requested (e.g., "generate Riverpod provider for auth") |
+| **Output snippet** | Key generated or verified code block                             |
+| **Commit link**    | `git log --oneline` SHA where the code landed                    |
 
 All entries from Entry 1 onwards were assisted by **GitHub Copilot (Claude Sonnet 4.6)** in VS Code.
 
@@ -315,6 +315,7 @@ All entries from Entry 1 onwards were assisted by **GitHub Copilot (Claude Sonne
 **Intent:** Add local scheduled notifications (reminders) to both apps so users are reminded 10 minutes before an upcoming session.
 
 **Design decisions:**
+
 - `NotificationService` singleton created in `shared/lib/services/notification_service.dart`. Uses `flutter_local_notifications` + `timezone` packages.
 - `init()` initialises the plugin, creates the Android notification channel (`wtf_gym_reminders`, Importance.high), and requests `POST_NOTIFICATIONS` + `SCHEDULE_EXACT_ALARM` permissions at runtime.
 - `scheduleSessionReminder({requestId, scheduledFor, title, body, minutesBefore = 10})` calls `plugin.zonedSchedule` with `AndroidScheduleMode.exactAllowWhileIdle`. Is a no-op if the reminder time has already passed.
@@ -326,6 +327,7 @@ All entries from Entry 1 onwards were assisted by **GitHub Copilot (Claude Sonne
 - Android manifests for both apps updated with `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM` (minSdk 33), and `POST_NOTIFICATIONS` (minSdk 33).
 
 **Output snippet:**
+
 ```dart
 // notification_service.dart
 Future<void> scheduleSessionReminder({
@@ -352,6 +354,7 @@ Future<void> scheduleSessionReminder({
 ```
 
 **Files changed:**
+
 - `shared/lib/services/notification_service.dart` (created)
 - `shared/lib/shared.dart` (export added)
 - `shared/pubspec.yaml` (`flutter_local_notifications: ^18.0.0`, `timezone: ^0.9.4`)
@@ -376,15 +379,16 @@ Future<void> scheduleSessionReminder({
 
 **Design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| Hive `Box<String>` for persistence | Already initialised in both apps; survives app restarts; no new dependency |
-| ID generated before send attempt | Same UUID written to queue AND Firestore so the stream deduplicates on flush success |
-| `OfflineQueueService` singleton | One queue shared across both screens; state survives screen navigation |
-| Stop-at-first-failure flush order | Preserves message ordering when connectivity is patchy |
-| 30 s periodic timer + `AppLifecycleState.resumed` trigger | Covers both background → foreground and in-app recovery scenarios |
+| Decision                                                  | Rationale                                                                            |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Hive `Box<String>` for persistence                        | Already initialised in both apps; survives app restarts; no new dependency           |
+| ID generated before send attempt                          | Same UUID written to queue AND Firestore so the stream deduplicates on flush success |
+| `OfflineQueueService` singleton                           | One queue shared across both screens; state survives screen navigation               |
+| Stop-at-first-failure flush order                         | Preserves message ordering when connectivity is patchy                               |
+| 30 s periodic timer + `AppLifecycleState.resumed` trigger | Covers both background → foreground and in-app recovery scenarios                    |
 
 **Output snippet — queue + merge in `_sendMessage`:**
+
 ```dart
 final id = _uuid.v4();
 final createdAt = DateTime.now();
@@ -397,6 +401,7 @@ try {
 ```
 
 **Output snippet — merge queued into Firestore stream:**
+
 ```dart
 final sentIds = firestoreMessages.map((m) => m.id).toSet();
 final queued = OfflineQueueService.instance
@@ -408,6 +413,7 @@ final allMessages = [...firestoreMessages, ...queued]
 ```
 
 **Files changed:**
+
 - `shared/lib/services/offline_queue_service.dart` (created)
 - `shared/lib/services/chat_service.dart` (optional `id`/`createdAt` params)
 - `shared/lib/widgets/status_ticks.dart` (added `'queued'` → orange `Icons.schedule`)
@@ -419,19 +425,20 @@ final allMessages = [...firestoreMessages, ...queued]
 
 ---
 
-
-
 Entries where AI identified root causes and provided diagnostic steps for real runtime errors.
 
 ### Entry 13 — Firestore Composite Index Errors
 
 **Error encountered:**
+
 ```
 [Cloud Firestore] FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/…
 ```
+
 **Tool:** GitHub Copilot (Claude Sonnet 4.6)  
 **AI diagnosis:** `orderBy` + `where` compound queries require manually-provisioned Firestore composite indexes not present in this project. Removed `orderBy` and sorted in Dart instead.  
 **AI-generated fix snippet:**
+
 ```dart
 // Before (crashes without composite index)
 .collection('messages').where('chatId', isEqualTo: chatId).orderBy('timestamp')
@@ -441,6 +448,7 @@ Entries where AI identified root causes and provided diagnostic steps for real r
 // then in stream map:
 ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 ```
+
 **Commit:** `fix(firestore): remove orderBy to avoid composite index requirement`
 
 ---
@@ -448,13 +456,16 @@ Entries where AI identified root causes and provided diagnostic steps for real r
 ### Entry 14 — onHMSError Propagation + 20-Second Connection Timeout
 
 **Error encountered:**
+
 ```
 Call screen stuck on "Connecting…" indefinitely after join().
 onHMSError() never surfaced the terminal SDK error.
 ```
+
 **Tool:** GitHub Copilot (Claude Sonnet 4.6)  
 **AI diagnosis:** `onHMSError` was an empty override — terminal errors were silently dropped. No timeout guard on join. Added error propagation and 20-second `Timer` guard.  
 **AI-generated fix snippet:**
+
 ```dart
 @override
 void onHMSError({required HMSException error}) {
@@ -465,6 +476,7 @@ void onHMSError({required HMSException error}) {
   }
 }
 ```
+
 **Commit:** `fix(call): propagate onHMSError, 20-second join timeout guard`
 
 ---
@@ -472,17 +484,21 @@ void onHMSError({required HMSException error}) {
 ### Entry 15 — 100ms Role Name Fix
 
 **Error encountered:**
+
 ```
 [100ms SDK] Error joining room: invalid role "trainer" — role does not exist in template
 ```
+
 **Tool:** GitHub Copilot (Claude Sonnet 4.6)  
 **AI diagnosis:** Template `6a1494d14a799ad17a8b5c54` only defines roles `host` / `guest`. Requested roles `trainer`/`member` don't exist.  
 **AI-generated fix snippet:**
+
 ```dart
 // app_constants.dart
 static const hmsTrainerRole = 'host';
 static const hmsMemberRole  = 'guest';
 ```
+
 **Commit:** `fix(call): use host/guest roles, add HMS_TEMPLATE_ID to env`
 
 ---
@@ -490,14 +506,18 @@ static const hmsMemberRole  = 'guest';
 ### Entry 16 — HTTP Timeout on Token Server Calls
 
 **Error encountered:**
+
 ```
 Approve button spinner never resolves. http.get blocks indefinitely when token server is unreachable.
 ```
+
 **Tool:** GitHub Copilot (Claude Sonnet 4.6)  
 **AI-generated fix snippet:**
+
 ```dart
 final res = await http.get(uri).timeout(const Duration(seconds: 8));
 ```
+
 **Commit:** `fix(network): 8-second HTTP timeout on all token-server calls`
 
 ---
@@ -512,10 +532,13 @@ Entries where AI-driven code restructuring corrected behaviour or improved clari
 **Tool:** GitHub Copilot (Claude Sonnet 4.6)  
 **Intent:** Refactor `MessageBubble` to use sender role, not sending perspective, so colour is consistent across both apps.  
 **Before:**
+
 ```dart
 final bubbleColor = isFromMe ? AppColors.memberBubble : AppColors.trainerBubble;
 ```
+
 **After:**
+
 ```dart
 // Role-based — consistent regardless of which app is rendering
 final isMemberMessage = message.senderId == AppConstants.memberDkId;
@@ -523,6 +546,7 @@ final bubbleColor = isMemberMessage
     ? AppColors.memberBubble   // #E3F0FF blue
     : AppColors.trainerBubble; // #FFEBEB red
 ```
+
 **Commit:** `fix(chat): role-based bubble colours, single-check sent tick, simulated typing, pull-to-load history`
 
 ---
@@ -535,21 +559,22 @@ final bubbleColor = isMemberMessage
 
 **Gaps found and fixed (11 total):**
 
-| # | Section | Gap | Fix |
-|---|---------|-----|-----|
-| 1 | §11 | Toast "Pending approval by Aarav" | → "Call requested. Waiting for trainer approval." |
-| 2 | §11 | System message only showed time | → "Call approved for May 26 at 6:00 PM." using `_formatDateTime` |
-| 3 | §11 | Declined showed "Reason: x" | → "Call request declined. Reason: x." |
-| 4 | §11 | Conversation screen had no empty state | Added "No messages yet. Start the conversation." (both apps) |
-| 5 | §11 | Pre-join missing body copy | Added "Ready to join? Check mic and camera." subtitle (both apps) |
-| 6 | §11 | No "Session saved" confirmation | Added `initState` snackbar "Session saved to your logs." (both apps) |
-| 7 | §8 | DevPanel missing env vars + build info | Added masked `token_server: http://10.0.2.2:****` + `App: WTF Guru v1.0.0` rows |
-| 8 | §8 | Error snackbars had no Copy action | Added `SnackBarAction(label: 'Copy error', …)` to all error snackbars |
-| 9 | §9 | `.env.example` missing `HMS_TEMPLATE_ID` | Added `HMS_TEMPLATE_ID=your_template_id` |
-| 10 | §7 | Ledger missing required format fields | Added Format table, Debugging section, Refactor section |
-| 11 | §7 | 0 commits with AI reference in body | All new commits include `AI-assisted: GitHub Copilot (Claude Sonnet 4.6)` body line |
+| #   | Section | Gap                                      | Fix                                                                                 |
+| --- | ------- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1   | §11     | Toast "Pending approval by Aarav"        | → "Call requested. Waiting for trainer approval."                                   |
+| 2   | §11     | System message only showed time          | → "Call approved for May 26 at 6:00 PM." using `_formatDateTime`                    |
+| 3   | §11     | Declined showed "Reason: x"              | → "Call request declined. Reason: x."                                               |
+| 4   | §11     | Conversation screen had no empty state   | Added "No messages yet. Start the conversation." (both apps)                        |
+| 5   | §11     | Pre-join missing body copy               | Added "Ready to join? Check mic and camera." subtitle (both apps)                   |
+| 6   | §11     | No "Session saved" confirmation          | Added `initState` snackbar "Session saved to your logs." (both apps)                |
+| 7   | §8      | DevPanel missing env vars + build info   | Added masked `token_server: http://10.0.2.2:****` + `App: WTF Guru v1.0.0` rows     |
+| 8   | §8      | Error snackbars had no Copy action       | Added `SnackBarAction(label: 'Copy error', …)` to all error snackbars               |
+| 9   | §9      | `.env.example` missing `HMS_TEMPLATE_ID` | Added `HMS_TEMPLATE_ID=your_template_id`                                            |
+| 10  | §7      | Ledger missing required format fields    | Added Format table, Debugging section, Refactor section                             |
+| 11  | §7      | 0 commits with AI reference in body      | All new commits include `AI-assisted: GitHub Copilot (Claude Sonnet 4.6)` body line |
 
 **Output snippet — DevPanel build info and masked env vars:**
+
 ```dart
 // Build info row
 Text(
@@ -564,6 +589,7 @@ Text(
 ```
 
 **Files changed:**
+
 - `guru_app/lib/features/schedule/screens/schedule_screen.dart`
 - `guru_app/lib/features/schedule/screens/my_requests_screen.dart`
 - `shared/lib/services/call_request_service.dart`
@@ -594,6 +620,7 @@ Text(
 **Intent:** Implement a persistent Light/Dark theme toggle in both apps.
 
 **Design decisions:**
+
 - `ThemeNotifier` (`StateNotifier<ThemeMode>`) created in `shared/lib/utils/theme_notifier.dart`. Persists selection to `SharedPreferences` under key `pref_theme_mode`.
 - `loadPersistedTheme()` helper called in both `main()` functions before `runApp`. The saved `ThemeMode` is injected via `ProviderScope` overrides so the correct theme is active on the very first frame (no flash of wrong theme).
 - `AppTheme` extended with `guruDark()` and `trainerDark()` static methods. Dark theme uses `Brightness.dark` colour scheme + custom surface (`#1E1E1E`), scaffold background (`#121212`), appBar (`#1A1A1A`), card border (`#2C2C2C`), and input fill (`#2C2C2C`).
@@ -601,6 +628,7 @@ Text(
 - Toggle `IconButton` (`dark_mode` / `light_mode` icons) added to `AppBarBadge` `actions` on both home screens. Tapping calls `ref.read(themeNotifierProvider.notifier).toggle()`.
 
 **Output snippet:**
+
 ```dart
 // theme_notifier.dart
 class ThemeNotifier extends StateNotifier<ThemeMode> {
@@ -623,6 +651,7 @@ runApp(
 ```
 
 **Files changed:**
+
 - `shared/lib/utils/app_theme.dart` (dark theme builders)
 - `shared/lib/utils/theme_notifier.dart` (created)
 - `shared/lib/shared.dart` (export)
@@ -635,3 +664,53 @@ runApp(
 
 **Commit:** `feat(theme): light/dark toggle with SharedPreferences persistence in both apps`
 
+---
+
+## Entry 29 — Vibrant & Block Design System UI Overhaul
+
+**Prompt #:** 29
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)
+**Intent:** Apply a fitness/gym-optimised "Vibrant & Block-based" design system across both apps using the `.github/prompts/ui-ux-pro-max` Python tool.
+
+**Design decisions:**
+
+| Decision                                                          | Rationale                                                                                            |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Barlow Condensed (headings) + Barlow (body) via `google_fonts`    | Generated by ui-ux-pro-max tool for fitness/gym pattern — high-energy condensed headings, clean body |
+| Energy Orange `#F97316` as brand accent                           | Tool-recommended brand colour for gym/fitness; distinct from app-primary blues/reds                  |
+| `#1F2937` dark bg, `#111827` darkSurface, `#374151` darkCard      | Full dark-mode palette token set; avoids hardcoded colours in widgets                                |
+| `AppTextStyles` converted from `const` fields → non-const getters | Required because `GoogleFonts.*()` calls are not const; callers must drop `const` on `Text` widgets  |
+| Gradient `DecoratedBox` on CtaButton primary                      | Replaces flat `ElevatedButton`; gradient = primary → 28% darker                                      |
+| Left 4px color bar + solid icon container in guru home cards      | Block-based card pattern; communicates card category without needing text labels                     |
+| Solid-color grid tiles in trainer home                            | Vibrant background tiles; frosted white icon container for legibility                                |
+| Animated gradient background in onboarding (shifts per slide)     | Visual delight; aligns with design system's "vibrant" pattern                                        |
+
+**Output snippet — brand accent and dark palette:**
+
+```dart
+static const brand        = Color(0xFFF97316); // Energy Orange
+static const darkBg       = Color(0xFF1F2937);
+static const darkSurface  = Color(0xFF111827);
+static const darkCard     = Color(0xFF374151);
+static const darkBorder   = Color(0xFF4B5563);
+static const textOnDark   = Color(0xFFF8FAFC);
+
+static TextStyle get h1 => GoogleFonts.barlowCondensed(
+  fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: 0.4);
+```
+
+**Files changed:**
+
+- `shared/pubspec.yaml` (`google_fonts: ^6.2.1` added → resolved as 6.3.3)
+- `shared/lib/utils/app_theme.dart` (AppColors + AppTextStyles + AppTheme dark palette)
+- `shared/lib/utils/theme_notifier.dart` (minor touch — included in commit)
+- `shared/lib/widgets/app_bar_badge.dart` (solid badge + 3 px gradient bottom line)
+- `shared/lib/widgets/cta_button.dart` (gradient DecoratedBox primary style)
+- `guru_app/lib/features/home/screens/home_screen.dart` (gradient hero + block cards)
+- `guru_app/lib/features/onboarding/screens/onboarding_screen.dart` (animated gradient bg + bold icon containers)
+- `guru_app/lib/features/onboarding/screens/create_profile_screen.dart` (removed const from AppTextStyles usages)
+- `guru_app/lib/features/schedule/screens/schedule_screen.dart` (removed const from AppTextStyles usages)
+- `trainer_app/lib/features/home/screens/home_screen.dart` (gradient hero + solid-color grid tiles)
+- `trainer_app/lib/features/call/screens/post_call_notes_screen.dart` (removed const from AppTextStyles usage)
+
+**Commit:** `feat(ui): apply Vibrant & Block design system across both apps`

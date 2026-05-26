@@ -64,15 +64,14 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
       if (mounted) context.push('/call/${widget.callRequestId}');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(
-              content: Text('Error: $e'),
-              action: SnackBarAction(
-                label: 'Copy error',
-                onPressed: () =>
-                    Clipboard.setData(ClipboardData(text: 'Error: $e')),
-              ),
-            ));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: $e'),
+          action: SnackBarAction(
+            label: 'Copy error',
+            onPressed: () =>
+                Clipboard.setData(ClipboardData(text: 'Error: $e')),
+          ),
+        ));
       }
     } finally {
       if (mounted) setState(() => _isJoining = false);
@@ -91,7 +90,8 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
             const SizedBox(height: AppSpacing.xl),
             Text(
               'Ready to join? Check mic and camera.',
-              style: AppTextStyles.body.copyWith(color: AppColors.trainerPrimary.withOpacity(0.8)),
+              style: AppTextStyles.body
+                  .copyWith(color: AppColors.trainerPrimary.withOpacity(0.8)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.md),

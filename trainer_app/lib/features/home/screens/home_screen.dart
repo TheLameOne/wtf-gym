@@ -21,8 +21,7 @@ class HomeScreen extends ConsumerWidget {
             tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
             icon: Icon(
                 isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-            onPressed: () =>
-                ref.read(themeNotifierProvider.notifier).toggle(),
+            onPressed: () => ref.read(themeNotifierProvider.notifier).toggle(),
           ),
         ],
       ),
@@ -40,13 +39,8 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       'Welcome, Aarav! 💪',
                       style: AppTextStyles.h1.copyWith(fontSize: 34),
-                    )
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideY(
-                            begin: -0.2,
-                            duration: 400.ms,
-                            curve: Curves.easeOut),
+                    ).animate().fadeIn(duration: 400.ms).slideY(
+                        begin: -0.2, duration: 400.ms, curve: Curves.easeOut),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       'Manage your members and sessions',
@@ -187,8 +181,7 @@ class _GridTile extends StatelessWidget {
       ),
     )
         .animate()
-        .fadeIn(
-            delay: Duration(milliseconds: 80 * index), duration: 300.ms)
+        .fadeIn(delay: Duration(milliseconds: 80 * index), duration: 300.ms)
         .scale(
             begin: const Offset(0.88, 0.88),
             end: const Offset(1, 1),

@@ -22,15 +22,13 @@ class HomeScreen extends ConsumerWidget {
             tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
             icon: Icon(
                 isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-            onPressed: () =>
-                ref.read(themeNotifierProvider.notifier).toggle(),
+            onPressed: () => ref.read(themeNotifierProvider.notifier).toggle(),
           ),
         ],
       ),
       body: Stack(
         children: [
-          _GradientBackground(
-              primary: AppColors.guruPrimary, isDark: isDark),
+          _GradientBackground(primary: AppColors.guruPrimary, isDark: isDark),
           SafeArea(
             child: SingleChildScrollView(
               child: Column(
@@ -201,8 +199,7 @@ class _HomeCard extends StatelessWidget {
                             color: color,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child:
-                              Icon(icon, color: AppColors.white, size: 26),
+                          child: Icon(icon, color: AppColors.white, size: 26),
                         ),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
@@ -243,8 +240,7 @@ class _HomeCard extends StatelessWidget {
       ),
     )
         .animate()
-        .fadeIn(
-            delay: Duration(milliseconds: 100 * index), duration: 350.ms)
+        .fadeIn(delay: Duration(milliseconds: 100 * index), duration: 350.ms)
         .slideX(begin: 0.12, duration: 350.ms, curve: Curves.easeOut);
   }
 }

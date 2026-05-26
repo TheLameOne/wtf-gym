@@ -1,6 +1,7 @@
 # WTF Gym — 100ms Token Server
 
 A lightweight Node.js/Express server that:
+
 - Issues 100ms **app tokens** (JWTs) for Flutter clients to join rooms
 - Creates 100ms **rooms** via the Management API on trainer approval
 
@@ -12,17 +13,20 @@ A lightweight Node.js/Express server that:
 ## Setup
 
 1. Install dependencies:
+
    ```bash
    cd token_server
    npm install
    ```
 
 2. Copy the example env file and fill in your credentials:
+
    ```bash
    cp .env.example .env
    ```
 
    Edit `.env`:
+
    ```
    HMS_APP_ACCESS_KEY=your_app_access_key
    HMS_APP_SECRET=your_app_secret
@@ -42,6 +46,7 @@ A lightweight Node.js/Express server that:
 ## Endpoints
 
 ### `GET /health`
+
 Returns `{ status: 'ok' }`. Use to verify the server is running.
 
 ---
@@ -50,13 +55,14 @@ Returns `{ status: 'ok' }`. Use to verify the server is running.
 
 Generates a signed app JWT for the given user to join a specific room.
 
-| Query param | Required | Description |
-|-------------|----------|-------------|
-| `userId`    | ✅ | Any stable user identifier (e.g. `member_dk`, `trainer_aarav`) |
-| `role`      | ✅ | One of: `host`, `guest`, `trainer`, `member` |
-| `roomId`    | ✅ | The 100ms room ID (obtained from `POST /room`) |
+| Query param | Required | Description                                                    |
+| ----------- | -------- | -------------------------------------------------------------- |
+| `userId`    | ✅       | Any stable user identifier (e.g. `member_dk`, `trainer_aarav`) |
+| `role`      | ✅       | One of: `host`, `guest`, `trainer`, `member`                   |
+| `roomId`    | ✅       | The 100ms room ID (obtained from `POST /room`)                 |
 
 **Response:**
+
 ```json
 { "token": "<signed-jwt>" }
 ```
@@ -70,19 +76,23 @@ Tokens are valid for **24 hours** (HS256, signed with `HMS_APP_SECRET`).
 Creates a new 100ms room via the Management API.
 
 **Request body:**
+
 ```json
 { "name": "some-unique-room-name" }
 ```
 
 **Response (success):**
+
 ```json
 { "id": "63f...", "name": "some-unique-room-name" }
 ```
 
 **Response (fallback — API unreachable):**
+
 ```json
 { "id": "local_some-unique-room-name", "name": "...", "fallback": true }
 ```
+
 The fallback `local_*` roomId allows the app to continue in dev without 100ms API access.
 
 ---
@@ -108,9 +118,9 @@ Network loss
 
 ## Environment variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `HMS_APP_ACCESS_KEY` | ✅ | 100ms app access key |
-| `HMS_APP_SECRET` | ✅ | 100ms app secret (used to sign JWTs) |
-| `HMS_TEMPLATE_ID` | Optional | 100ms template ID; if omitted, rooms use the account default |
-| `PORT` | Optional | Server port (default: 3000) |
+| Variable             | Required | Description                                                  |
+| -------------------- | -------- | ------------------------------------------------------------ |
+| `HMS_APP_ACCESS_KEY` | ✅       | 100ms app access key                                         |
+| `HMS_APP_SECRET`     | ✅       | 100ms app secret (used to sign JWTs)                         |
+| `HMS_TEMPLATE_ID`    | Optional | 100ms template ID; if omitted, rooms use the account default |
+| `PORT`               | Optional | Server port (default: 3000)                                  |

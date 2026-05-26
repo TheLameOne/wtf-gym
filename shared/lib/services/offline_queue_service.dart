@@ -77,10 +77,13 @@ class OfflineQueueService {
   /// All queued messages for [chatId] as [MessageModel] with status 'queued'.
   List<MessageModel> pendingFor(String chatId) {
     if (_box == null) return [];
-    final result = _box!.values.map((v) {
-      final map = jsonDecode(v) as Map<String, dynamic>;
-      return MessageModel.fromMap({...map, 'status': 'queued'});
-    }).where((m) => m.chatId == chatId).toList();
+    final result = _box!.values
+        .map((v) {
+          final map = jsonDecode(v) as Map<String, dynamic>;
+          return MessageModel.fromMap({...map, 'status': 'queued'});
+        })
+        .where((m) => m.chatId == chatId)
+        .toList();
     result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return result;
   }
@@ -129,8 +132,7 @@ class OfflineQueueService {
   /// Start a 30-second periodic timer that calls [flush].
   void startAutoFlush() {
     _flushTimer?.cancel();
-    _flushTimer =
-        Timer.periodic(const Duration(seconds: 30), (_) => flush());
+    _flushTimer = Timer.periodic(const Duration(seconds: 30), (_) => flush());
   }
 
   /// Stop the auto-flush timer. Call this from screen [dispose].

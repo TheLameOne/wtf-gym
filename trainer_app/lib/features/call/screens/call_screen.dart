@@ -46,15 +46,14 @@ class _CallScreenState extends ConsumerState<CallScreen>
   void _onPeersChanged(List<HMSPeer> peers) => setState(() {});
   void _onError(String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Call error: $msg'),
-            action: SnackBarAction(
-              label: 'Copy error',
-              onPressed: () =>
-                  Clipboard.setData(ClipboardData(text: 'Call error: $msg')),
-            ),
-          ));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Call error: $msg'),
+        action: SnackBarAction(
+          label: 'Copy error',
+          onPressed: () =>
+              Clipboard.setData(ClipboardData(text: 'Call error: $msg')),
+        ),
+      ));
     }
   }
 
@@ -130,9 +129,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
             if (_hms.remoteVideoTracks.values.any((t) => !t.isMute))
               Stack(
                 children: [
-                  ..._hms.remoteVideoTracks.values
-                      .where((t) => !t.isMute)
-                      .map(
+                  ..._hms.remoteVideoTracks.values.where((t) => !t.isMute).map(
                         (track) => HMSVideoView(
                           track: track,
                           setMirror: false,

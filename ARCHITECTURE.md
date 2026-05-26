@@ -114,19 +114,18 @@ Room creation : POST /room on trainer approval; fallback local_{name} id in dev
 
 ### Role permissions
 
-| Role            | 100ms role | Can mute self | Can end call for everyone |
-|-----------------|-----------|---------------|---------------------------|
-| Trainer         | `host`    | ✅            | ✅ via `endRoom()`         |
-| Member          | `guest`   | ✅            | ❌ `leave()` exits self only |
+| Role    | 100ms role | Can mute self | Can end call for everyone    |
+| ------- | ---------- | ------------- | ---------------------------- |
+| Trainer | `host`     | ✅            | ✅ via `endRoom()`           |
+| Member  | `guest`    | ✅            | ❌ `leave()` exits self only |
 
 > When the trainer calls `endRoom()`, all participants receive `onRemovedFromRoom`, which transitions them to `HMSCallState.ended` and triggers post-call navigation automatically.
 
 ### Edge cases
 
-| Scenario | Handled by |
-|----------|-----------|
-| Network loss | `onReconnecting` → reconnect spinner; `onReconnected` → resumes |
-| App backgrounded | `WidgetsBindingObserver.didChangeAppLifecycleState` pauses camera on `paused`, restores on `resumed` |
-| Token expired | Tokens are 24 h; a session never exceeds that. If extended sessions are added, re-call `fetchAuthToken` and re-join |
-| Audio device switch | `onAudioDeviceChanged` logs the change; 100ms SDK handles routing automatically |
-
+| Scenario            | Handled by                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Network loss        | `onReconnecting` → reconnect spinner; `onReconnected` → resumes                                                     |
+| App backgrounded    | `WidgetsBindingObserver.didChangeAppLifecycleState` pauses camera on `paused`, restores on `resumed`                |
+| Token expired       | Tokens are 24 h; a session never exceeds that. If extended sessions are added, re-call `fetchAuthToken` and re-join |
+| Audio device switch | `onAudioDeviceChanged` logs the change; 100ms SDK handles routing automatically                                     |

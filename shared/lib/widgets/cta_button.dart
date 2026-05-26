@@ -52,16 +52,17 @@ class CtaButton extends StatelessWidget {
               ),
             ),
           ),
-        ).animate(target: isLoading ? 1 : 0).scaleXY(
-            begin: 1, end: 0.97, duration: 100.ms);
+        )
+            .animate(target: isLoading ? 1 : 0)
+            .scaleXY(begin: 1, end: 0.97, duration: 100.ms);
       case CtaStyle.secondary:
         return OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: primary, width: 1.5),
             minimumSize: const Size.fromHeight(52),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: _child(primary),
         );

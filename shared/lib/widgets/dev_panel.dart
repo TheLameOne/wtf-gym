@@ -36,8 +36,7 @@ class _DevPanelState extends State<DevPanel> {
               child: const Text('Cancel')),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child:
-                  const Text('Reset', style: TextStyle(color: Colors.red))),
+              child: const Text('Reset', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -71,7 +70,7 @@ class _DevPanelState extends State<DevPanel> {
       // Local Hive queue
       await OfflineQueueService.instance.clearAll();
 
-      AppLogger.info('DevPanel', 'All data reset');
+      AppLogger.info('DevPanel');
       if (mounted) {
         setState(() => _isOpen = false);
         ScaffoldMessenger.of(context).showSnackBar(

@@ -103,11 +103,9 @@ class AppTheme {
       titleMedium: GoogleFonts.barlowCondensed(
           fontSize: 18, fontWeight: FontWeight.w600),
       bodyLarge: GoogleFonts.barlow(fontSize: 16, fontWeight: FontWeight.w400),
-      bodyMedium:
-          GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w400),
+      bodyMedium: GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w400),
       bodySmall: GoogleFonts.barlow(fontSize: 12, fontWeight: FontWeight.w400),
-      labelLarge:
-          GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w600),
+      labelLarge: GoogleFonts.barlow(fontSize: 14, fontWeight: FontWeight.w600),
     );
 
     return ThemeData(

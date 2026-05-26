@@ -84,8 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: CtaButton(
-                    label:
-                        _page == _slides.length - 1 ? 'Get Started' : 'Next',
+                    label: _page == _slides.length - 1 ? 'Get Started' : 'Next',
                     onPressed: () {
                       if (_page == _slides.length - 1) {
                         context.go('/create-profile');
@@ -212,5 +211,3 @@ class _PageIndicator extends StatelessWidget {
     );
   }
 }
-
-

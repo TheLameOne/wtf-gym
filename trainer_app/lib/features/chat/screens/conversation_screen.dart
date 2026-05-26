@@ -170,8 +170,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 }
                 final firestoreMessages = snapshot.data ?? [];
                 // Merge queued messages (not yet in Firestore) into the list
-                final sentIds =
-                    firestoreMessages.map((m) => m.id).toSet();
+                final sentIds = firestoreMessages.map((m) => m.id).toSet();
                 final queued = OfflineQueueService.instance
                     .pendingFor(widget.chatId)
                     .where((m) => !sentIds.contains(m.id))
