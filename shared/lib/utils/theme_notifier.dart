@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kThemeKey = 'pref_theme_mode';
 
-class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier(ThemeMode initial) : super(initial);
+class ThemeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    // Synchronous default; apps call initThemeProvider() in main() to seed
+    // from SharedPreferences before the first frame.
+    return ThemeMode.light;
+  }
 
   Future<void> toggle() async {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
@@ -18,11 +22,7 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
 }
 
 final themeNotifierProvider =
-    StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
-  // Synchronous default; apps call initThemeProvider() in main() to seed
-  // from SharedPreferences before the first frame.
-  return ThemeNotifier(ThemeMode.light);
-});
+    NotifierProvider<ThemeNotifier, ThemeMode>(ThemeNotifier.new);
 
 /// Call in [main()] after [WidgetsFlutterBinding.ensureInitialized()].
 /// Loads the persisted [ThemeMode] from SharedPreferences and initializes the provider.
