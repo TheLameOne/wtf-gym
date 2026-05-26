@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared/shared.dart';
@@ -14,6 +15,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+  bool _simulatingTyping = false;
+  int _messageLimit = 50;
   static const _myId = AppConstants.memberDkId;
   static const _otherUserId = AppConstants.trainerAaravId;
 
@@ -56,6 +59,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         text: msg,
       );
       _scrollToBottom();
+      // Simulate the other side typing for 400–800 ms
+      final delay = 400 + Random().nextInt(401);
+      setState(() => _simulatingTyping = true);
+      Future.delayed(Duration(milliseconds: delay), () {
+        if (mounted) setState(() => _simulatingTyping = false);
+      });
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -77,31 +86,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final messages = snapshot.data ?? [];
+                final allMessages = snapshot.data ?? [];
+                // Paginate: show last _messageLimit messages; pull to load more
+                final messages = allMessages.length > _messageLimit
+                    ? allMessages.sublist(allMessages.length - _messageLimit)
+                    : allMessages;
                 ChatService.instance
                     .markAsRead(widget.chatId, _myId, _otherUserId);
                 WidgetsBinding.instance
                     .addPostFrameCallback((_) => _scrollToBottom());
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  itemCount: messages.length,
-                  itemBuilder: (_, i) {
-                    return MessageBubble(
-                      message: messages[i],
-                      isFromMe: messages[i].senderId == _myId,
-                    );
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() => _messageLimit += 50);
                   },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    itemCount: messages.length,
+                    itemBuilder: (_, i) {
+                      return MessageBubble(
+                        message: messages[i],
+                        isFromMe: messages[i].senderId == _myId,
+                      );
+                    },
+                  ),
                 );
               },
             ),
           ),
-          // Typing indicator
+          // Typing indicator (real + simulated)
           StreamBuilder<bool>(
             stream:
                 ChatService.instance.typingStream(widget.chatId, _otherUserId),
             builder: (_, snap) {
-              if (snap.data == true) {
+              if (snap.data == true || _simulatingTyping) {
                 return const Padding(
                   padding: EdgeInsets.only(
                       left: AppSpacing.md, bottom: AppSpacing.xs),

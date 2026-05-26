@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/message_model.dart';
+import '../utils/app_constants.dart';
 import '../utils/app_theme.dart';
 import 'status_ticks.dart';
 
@@ -20,7 +21,11 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     if (message.isSystemMessage) return _buildSystemMessage(context);
 
-    final bgColor = isFromMe ? AppColors.memberBubble : AppColors.trainerBubble;
+    // Role-based colour: member messages are always blue, trainer always red,
+    // regardless of which app (perspective) is viewing.
+    final bgColor = message.senderId == AppConstants.memberDkId
+        ? AppColors.memberBubble
+        : AppColors.trainerBubble;
     final textColor = AppColors.grey900;
     final align = isFromMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     final radius = isFromMe
