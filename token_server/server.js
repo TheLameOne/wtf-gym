@@ -70,7 +70,7 @@ app.get('/token', (req, res) => {
 
 // POST /room  body: { name: string }
 app.post('/room', async (req, res) => {
-  const { name } = req.body;
+  const { name, templateId } = req.body;
   if (!name) return res.status(400).json({ error: 'name is required' });
 
   try {
@@ -84,7 +84,9 @@ app.post('/room', async (req, res) => {
       body: JSON.stringify({
         name,
         description: 'WTF Gym session',
-        ...(HMS_TEMPLATE_ID ? { template_id: HMS_TEMPLATE_ID } : {}),
+        // body templateId takes precedence over .env so the correct
+        // host/guest template is always used
+        template_id: templateId || HMS_TEMPLATE_ID || undefined,
       }),
     });
 

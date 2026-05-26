@@ -33,10 +33,14 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
     try {
       final roomMeta = await CallRequestService.instance
           .getRoomMetaForRequest(widget.callRequestId);
-      if (roomMeta == null) {
+      if (roomMeta == null ||
+          roomMeta.hmsRoomId.startsWith('room_') ||
+          roomMeta.hmsRoomId.startsWith('local_')) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Room not ready yet. Please wait.')),
+            const SnackBar(
+                content: Text(
+                    'Room not ready. Ask trainer to re-approve the request.')),
           );
         }
         return;

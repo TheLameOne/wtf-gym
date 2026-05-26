@@ -149,7 +149,10 @@ class CallRequestService {
           .post(
             Uri.parse('${AppConstants.tokenServerUrl}/room'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'name': 'room_$requestId'}),
+            body: jsonEncode({
+              'name': 'room_$requestId',
+              'templateId': AppConstants.hmsTrainerTemplateId,
+            }),
           )
           .timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
