@@ -176,3 +176,27 @@
 
 **Files changed:** `guru_app/lib/features/chat/screens/chat_list_screen.dart`, `trainer_app/lib/features/chat/screens/chat_list_screen.dart`  
 **Commit:** `feat(chat): add illustration + Say hi CTA to empty chat list state`
+
+---
+
+## Entry 21 — Scheduling QA & Fixes
+
+**Prompt pattern:** Verify schedule screen (calendar + 30-min slots, note, CTA), My Requests toast, trainer approve/decline flow, date validation, conflict check  
+**Findings:**
+
+- **Calendar + next 3 days ✅**: `TableCalendar` with `firstDay: now`, `lastDay: now + 3 days`. Past dates disabled; past time slots grayed out via `isPast = dt.isBefore(now)`.
+- **30-min blocks ❌ → Fixed**: Slots were hourly (10 entries). Expanded to 20 half-hour blocks from 7:00–11:30 and 14:00–18:30.
+- **`isSelected` minute bug ❌ → Fixed**: Selection check only compared `.hour`, so 8:00 and 8:30 both appeared highlighted. Added `.minute` comparison.
+- **Note field 140 chars ✅**: `maxLength: 140` on TextField; `Validators.validateNote` enforces the limit.
+- **CTA "Request Call" ✅**: Creates `CallRequest` with `status: 'pending'`.
+- **Toast message ❌ → Fixed**: Was `'Call request sent!'`. Changed to `'Pending approval by Aarav'`.
+- **My Requests list ✅**: Streams from Firestore, shows status badges. Approved requests show "Join Call" button.
+- **Trainer Requests tab ✅**: Shows all requests with member name, note, scheduled time, and inline Approve/Decline buttons.
+- **On Approve ✅**: Deletes stale `room_metas`, creates real 100ms room, stores `RoomMetaModel`, updates status, sends system message.
+- **System message format ❌ → Fixed**: Was `'Call approved for May 26 at 6:00 PM'`. Requirement is time-only. Added `_formatTime()` helper; message is now `'Call approved for 6:00 PM'`.
+- **On Decline ✅**: Reason modal (`AlertDialog` + `TextField`). DK sees decline reason in `_RequestCard`.
+- **Past slot validation ✅**: `Validators.isValidFutureSlot` checked in `_submit()`; past slots show error snackbar.
+- **Conflict check ❌ → Fixed**: `isSlotTaken()` existed in `CallRequestService` (±29 min window against approved requests) but was never called. Now called in `_submit()` before `createRequest`; shows error snackbar if slot is taken.
+
+**Files changed:** `guru_app/lib/features/schedule/screens/schedule_screen.dart`, `shared/lib/services/call_request_service.dart`  
+**Commit:** `feat(schedule): 30-min slots, conflict check, correct toast and system message`
