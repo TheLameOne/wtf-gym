@@ -21,15 +21,25 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
 
   static final _slots = [
     const TimeOfDay(hour: 7, minute: 0),
+    const TimeOfDay(hour: 7, minute: 30),
     const TimeOfDay(hour: 8, minute: 0),
+    const TimeOfDay(hour: 8, minute: 30),
     const TimeOfDay(hour: 9, minute: 0),
+    const TimeOfDay(hour: 9, minute: 30),
     const TimeOfDay(hour: 10, minute: 0),
+    const TimeOfDay(hour: 10, minute: 30),
     const TimeOfDay(hour: 11, minute: 0),
+    const TimeOfDay(hour: 11, minute: 30),
     const TimeOfDay(hour: 14, minute: 0),
+    const TimeOfDay(hour: 14, minute: 30),
     const TimeOfDay(hour: 15, minute: 0),
+    const TimeOfDay(hour: 15, minute: 30),
     const TimeOfDay(hour: 16, minute: 0),
+    const TimeOfDay(hour: 16, minute: 30),
     const TimeOfDay(hour: 17, minute: 0),
+    const TimeOfDay(hour: 17, minute: 30),
     const TimeOfDay(hour: 18, minute: 0),
+    const TimeOfDay(hour: 18, minute: 30),
   ];
 
   DateTime _toDateTime(DateTime day, TimeOfDay time) {
@@ -63,6 +73,19 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     });
 
     try {
+      final isTaken = await CallRequestService.instance
+          .isSlotTaken(AppConstants.trainerAaravId, _selectedSlot!);
+      if (isTaken) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'That slot is already booked. Please pick another time.')),
+          );
+        }
+        return;
+      }
+
       await CallRequestService.instance.createRequest(
         CallRequestModel(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -80,7 +103,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Call request sent!')),
+          const SnackBar(content: Text('Pending approval by Aarav')),
         );
         context.push('/requests');
       }
@@ -154,7 +177,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   final isPast = dt.isBefore(now);
                   final isSelected = _selectedSlot != null &&
                       isSameDay(_selectedSlot!, dt) &&
-                      _selectedSlot!.hour == dt.hour;
+                      _selectedSlot!.hour == dt.hour &&
+                      _selectedSlot!.minute == dt.minute;
                   return TimeChip(
                     label: slot.format(context),
                     isSelected: isSelected,
