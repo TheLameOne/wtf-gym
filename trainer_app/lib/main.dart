@@ -14,7 +14,7 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [
-        themeNotifierProvider.overrideWith((_) => ThemeNotifier(savedTheme)),
+        themeNotifierProvider.overrideWith(() => ThemeNotifier(savedTheme)),
       ],
       child: const TrainerApp(),
     ),

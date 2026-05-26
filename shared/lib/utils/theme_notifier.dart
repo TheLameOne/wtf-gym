@@ -5,12 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _kThemeKey = 'pref_theme_mode';
 
 class ThemeNotifier extends Notifier<ThemeMode> {
+  ThemeNotifier([this._initial = ThemeMode.light]);
+  final ThemeMode _initial;
+
   @override
-  ThemeMode build() {
-    // Synchronous default; apps call initThemeProvider() in main() to seed
-    // from SharedPreferences before the first frame.
-    return ThemeMode.light;
-  }
+  ThemeMode build() => _initial;
 
   Future<void> toggle() async {
     final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
