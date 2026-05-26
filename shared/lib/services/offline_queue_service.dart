@@ -138,6 +138,13 @@ class OfflineQueueService {
     _flushTimer?.cancel();
     _flushTimer = null;
   }
+
+  /// Drop every pending message from the local queue (used by DevPanel reset).
+  Future<void> clearAll() async {
+    await _box?.clear();
+    onQueueChanged?.call();
+    AppLogger.chat('[Queue] Cleared all queued messages');
+  }
 }
 
 // Typedef so we don't need an import of flutter/foundation in this file.
