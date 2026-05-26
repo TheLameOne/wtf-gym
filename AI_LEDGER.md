@@ -220,3 +220,25 @@
 
 **Files changed:** `shared/lib/widgets/message_bubble.dart`, `shared/lib/widgets/status_ticks.dart`, `guru_app/lib/features/chat/screens/conversation_screen.dart`, `trainer_app/lib/features/chat/screens/conversation_screen.dart`  
 **Commit:** `fix(chat): role-based bubble colours, single-check sent tick, simulated typing, pull-to-load history`
+
+---
+
+## Entry 23 — Video Call QA & Fixes
+
+**Prompt pattern:** Verify full call spec: 10-min Join button, pre-join device check, in-call grid + name labels, Mute/Cam/Flip/End controls, reconnect loader, session log, post-call sheets  
+**Findings:**
+
+- **100ms room creation + roles ✅**: Approved requests use a real 100ms room; roles `host`/`guest` stored in `RoomMetaModel` and passed to `fetchAuthToken`.
+- **Join Call button: 10-min window ❌ → Fixed**: `isApproved` was used to show the Join button — it appeared as soon as trainer approved, regardless of schedule. Added `isJoinable` getter to `CallRequestModel`: `isApproved && DateTime.now().isAfter(scheduledFor - 10 min)`. Both request list screens now gate on `isJoinable`.
+- **Chat toolbar camera icon ❌ → Fixed**: No camera button existed in the conversation AppBar. Added `StreamBuilder` in `actions` for both apps that streams approved requests, filters `isJoinable`, and shows `Icons.video_call` + a red dot badge if a joinable call exists. Tapping pushes to `/pre-join/{id}`.
+- **Pre-join device check modal ✅ (improved)**: Was a small icon placeholder. Replaced with a full-width dark container (camera-preview style) with a `videocam` icon, user name label, and `videocam_off` overlay when camera toggle is off. Mic/cam toggles ✅. Role auto-mapped from `RoomMetaModel` ✅.
+- **In-call grid + name labels ❌ → Fixed**: No name labels existed on video tiles. Remote video tile now has a `Positioned` bottom-left overlay with the remote peer's name from `_hms.peers` (`firstOrNull`). Local PiP has a "You" label.
+- **Mute/Unmute, Video On/Off, Flip Camera, End Call ✅**: All 4 controls present in `_CallControls`. State reflected via `isMicMuted`/`isCameraMuted`.
+- **Network resilience ✅**: `onReconnecting` sets `HMSCallState.reconnecting`; call screen shows "Reconnecting…" spinner. 20s timeout guard already present from Entry 14.
+- **Peer leaves: other sees state change ✅**: `onPeersChanged` callback → `setState`; remote video track removed → "Waiting for…" placeholder shown.
+- **Session log auto-written ✅**: `_navigatePostCall` calls `SessionLogService.createLog` with `_hms.callStartTime` (or `DateTime.now()` fallback) and real `endedAt`.
+- **Member post-call: Rate 1–5 + optional note ❌ → Fixed**: `_noteController` existed but `updateRating` was always called with `null` for the note. Added `TextField` (3 lines, 200 char limit) to the rating UI; note now passed if non-empty.
+- **Trainer post-call: notes + "Mark as Complete" ❌ → Fixed**: Button label was "Save & Finish". Changed to "Mark as Complete" per spec. Notes field ✅ was already wired.
+
+**Files changed:** `shared/lib/models/call_request_model.dart`, `guru_app/.../my_requests_screen.dart`, `trainer_app/.../requests_screen.dart`, `guru_app/.../conversation_screen.dart`, `trainer_app/.../conversation_screen.dart`, `guru_app/.../call_screen.dart`, `trainer_app/.../call_screen.dart`, `guru_app/.../pre_join_screen.dart`, `trainer_app/.../pre_join_screen.dart`, `guru_app/.../post_call_rating_screen.dart`, `trainer_app/.../post_call_notes_screen.dart`  
+**Commit:** `feat(call): 10-min join window, camera-icon badge, name labels, note saved, Mark as Complete`
