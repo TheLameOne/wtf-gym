@@ -81,15 +81,45 @@ class _PreJoinScreenState extends ConsumerState<PreJoinScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: AppSpacing.xl),
+            // Camera preview (shows after join; placeholder shown pre-join
+            // since HMSSDK requires join before capturing local video)
             Container(
-              width: 160,
-              height: 160,
+              width: double.infinity,
+              height: 200,
               decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(24),
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.guruPrimary.withOpacity(0.4)),
               ),
-              child:
-                  const Icon(Icons.person, size: 80, color: AppColors.grey400),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(Icons.videocam, size: 56, color: Colors.white30),
+                  Positioned(
+                    bottom: AppSpacing.sm,
+                    left: AppSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('DK',
+                          style:
+                              TextStyle(color: Colors.white, fontSize: 12)),
+                    ),
+                  ),
+                  if (!_camEnabled)
+                    Container(
+                      color: Colors.black87,
+                      child: const Center(
+                        child: Icon(Icons.videocam_off,
+                            size: 48, color: Colors.white54),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.xl),
             Row(

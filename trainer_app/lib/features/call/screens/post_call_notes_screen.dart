@@ -66,7 +66,7 @@ class _PostCallNotesScreenState extends State<PostCallNotesScreen> {
             ),
             const Spacer(),
             CtaButton(
-              label: 'Save & Finish',
+              label: 'Mark as Complete',
               onPressed: _save,
               isLoading: _isSaving,
             ),

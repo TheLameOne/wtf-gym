@@ -102,7 +102,7 @@ class _RequestCard extends StatelessWidget {
                   style:
                       AppTextStyles.caption.copyWith(color: AppColors.error)),
             ],
-            if (request.isApproved) ...[
+            if (request.isJoinable) ...[
               const SizedBox(height: AppSpacing.sm),
               ElevatedButton.icon(
                 onPressed: () => context.push('/pre-join/${request.id}'),

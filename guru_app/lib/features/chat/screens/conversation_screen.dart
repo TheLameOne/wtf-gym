@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -75,6 +76,41 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Aarav'),
+        actions: [
+          StreamBuilder<List<CallRequestModel>>(
+            stream: CallRequestService.instance
+                .memberRequestsStream(AppConstants.memberDkId),
+            builder: (context, snap) {
+              final joinable = (snap.data ?? [])
+                  .where((r) => r.isJoinable)
+                  .toList();
+              if (joinable.isEmpty) return const SizedBox.shrink();
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.video_call),
+                    tooltip: 'Join upcoming call',
+                    onPressed: () =>
+                        context.push('/pre-join/${joinable.first.id}'),
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 10,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

@@ -25,8 +25,11 @@ class _PostCallRatingScreenState extends State<PostCallRatingScreen> {
     }
     setState(() => _isSubmitting = true);
     try {
-      await SessionLogService.instance
-          .updateRating(widget.sessionLogId, _stars, null);
+      await SessionLogService.instance.updateRating(
+        widget.sessionLogId,
+        _stars,
+        _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Thanks for the feedback!')),
@@ -79,6 +82,17 @@ class _PostCallRatingScreenState extends State<PostCallRatingScreen> {
                     ),
                   ),
                 ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            TextField(
+              controller: _noteController,
+              maxLines: 3,
+              maxLength: 200,
+              decoration: InputDecoration(
+                hintText: 'Optional note (e.g. loved the session!)',
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const Spacer(),

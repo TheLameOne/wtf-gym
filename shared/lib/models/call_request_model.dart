@@ -27,6 +27,11 @@ class CallRequestModel {
   bool get isApproved => status == 'approved';
   bool get isDeclined => status == 'declined';
   bool get isCancelled => status == 'cancelled';
+  /// True when approved AND within the 10-minute join window (or past it).
+  bool get isJoinable =>
+      isApproved &&
+      DateTime.now()
+          .isAfter(scheduledFor.subtract(const Duration(minutes: 10)));
 
   Map<String, dynamic> toMap() => {
         'id': id,

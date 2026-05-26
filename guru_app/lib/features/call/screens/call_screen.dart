@@ -102,11 +102,36 @@ class _CallScreenState extends ConsumerState<CallScreen> {
           children: [
             // Remote video
             if (_hms.remoteVideoTracks.isNotEmpty)
-              ..._hms.remoteVideoTracks.values.map(
-                (track) => HMSVideoView(
-                  track: track,
-                  setMirror: false,
-                ),
+              Stack(
+                children: [
+                  ..._hms.remoteVideoTracks.values.map(
+                    (track) => HMSVideoView(
+                      track: track,
+                      setMirror: false,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: AppSpacing.xl + 72,
+                    left: AppSpacing.md,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        _hms.peers
+                                .where((p) => !p.isLocal)
+                                .map((p) => p.name)
+                                .firstOrNull ??
+                            'Trainer',
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
               )
             else
               Center(
@@ -125,18 +150,37 @@ class _CallScreenState extends ConsumerState<CallScreen> {
               Positioned(
                 top: AppSpacing.md,
                 right: AppSpacing.md,
-                child: Container(
-                  width: 100,
-                  height: 140,
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white24),
-                  ),
-                  child: HMSVideoView(
-                    track: _hms.localVideoTrack!,
-                    setMirror: true,
-                  ),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 140,
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: HMSVideoView(
+                        track: _hms.localVideoTrack!,
+                        setMirror: true,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text('You',
+                            style: TextStyle(
+                                color: Colors.white, fontSize: 10)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             // Controls

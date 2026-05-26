@@ -220,7 +220,7 @@ class _RequestCardState extends State<_RequestCard> {
                 ],
               ),
             ],
-            if (req.isApproved) ...[
+            if (req.isJoinable) ...[
               const SizedBox(height: AppSpacing.sm),
               ElevatedButton.icon(
                 onPressed: () => context.push('/pre-join/${req.id}'),
