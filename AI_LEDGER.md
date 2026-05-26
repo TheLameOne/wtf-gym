@@ -161,3 +161,18 @@
 - **Onboarding persistence ✅**: `guru_app` splash checks `AuthService.isOnboardingDone()` (SharedPreferences `prefOnboardingDone`). `trainer_app` splash checks `AuthService.isLoggedIn()` (SharedPreferences `prefIsLoggedIn`). SharedPreferences is cleared on app reinstall → onboarding/login always shows fresh. On subsequent launches without reinstall the flag persists → user goes straight to home.
 - **Avatar contrast ✅**: All `CircleAvatar` instances use solid primary-color initials on a 10–15% opacity tinted background (light pink or light blue). Computed contrast ratios exceed WCAG AA. Chat message bubbles use `#E3F0FF`/`#FFEBEB` backgrounds with `#212121` text — excellent contrast.
 - **No changes required.**
+
+---
+
+## Entry 20 — Chat QA: Cross-App Messaging, Status Ticks, Typing Animation, Empty State
+
+**Prompt pattern:** Verify (1) send/receive works across both apps; (2) status changes visible, typing dot animates; (3) empty state uses illustration + CTA "Say hi"  
+**Findings:**
+
+- **Cross-app send/receive ✅**: Both apps stream from the same Firestore `chats/{id}/messages` collection. `_myId`/`_otherUserId` are correctly set per app (`member_dk` in guru, `trainer_aarav` in trainer). `ChatService.sendMessage()` uses a `WriteBatch` to atomically write the message and update `ChatMeta`.
+- **Status ticks ✅**: `StatusTicks` widget renders `done_all` in `guruPrimary` blue for `read`, grey for `sent`. `markAsRead` batch-updates the last 50 messages on conversation open.
+- **Typing animation ✅**: `TypingIndicator` renders 3 animated dots via `flutter_animate` with staggered 200ms delays and repeating scale pulse. `setTyping` is called on every keystroke; cleared on send and `dispose()`.
+- **Empty state ❌ → Fixed**: Both chat list screens previously showed a plain icon with no action. Replaced with a `_ChatEmptyState` widget: 💬 emoji (80px) as illustration, subtitle copy, and an `ElevatedButton.icon` labelled "Say hi 👋" that pushes directly to the conversation screen.
+
+**Files changed:** `guru_app/lib/features/chat/screens/chat_list_screen.dart`, `trainer_app/lib/features/chat/screens/chat_list_screen.dart`  
+**Commit:** `feat(chat): add illustration + Say hi CTA to empty chat list state`
