@@ -9,9 +9,12 @@ class TrainerApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(trainerRouterProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
     return MaterialApp.router(
       title: 'Trainer App',
       theme: AppTheme.trainer(),
+      darkTheme: AppTheme.trainerDark(),
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

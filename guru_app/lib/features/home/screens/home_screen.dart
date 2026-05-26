@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 import '../../../widgets/dev_panel_overlay.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeNotifierProvider);
+    final isDark = themeMode == ThemeMode.dark;
     return Scaffold(
       appBar: AppBarBadge(
         title: 'Guru App',
         roleLabel: 'Member • DK',
         roleColor: AppColors.guruPrimary,
+        actions: [
+          IconButton(
+            tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+            icon: Icon(isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+            onPressed: () => ref.read(themeNotifierProvider.notifier).toggle(),
+          ),
+        ],
       ),
       body: Stack(
         children: [

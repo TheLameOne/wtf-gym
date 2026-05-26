@@ -9,9 +9,12 @@ class GuruApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(guruRouterProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
     return MaterialApp.router(
       title: 'Guru App',
       theme: AppTheme.guru(),
+      darkTheme: AppTheme.guruDark(),
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

@@ -12,6 +12,8 @@ export 'services/chat_service.dart';
 export 'services/call_request_service.dart';
 export 'services/session_log_service.dart';
 export 'services/hms_service.dart';
+export 'services/notification_service.dart';
+export 'services/offline_queue_service.dart';
 
 // Widgets
 export 'widgets/app_bar_badge.dart';
@@ -25,6 +27,7 @@ export 'widgets/dev_panel.dart';
 
 // Utils
 export 'utils/app_theme.dart';
+export 'utils/theme_notifier.dart';
 export 'utils/app_logger.dart';
 export 'utils/app_constants.dart';
 export 'utils/validators.dart';

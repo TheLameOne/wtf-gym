@@ -55,66 +55,82 @@ class AppSpacing {
 class AppTheme {
   AppTheme._();
 
-  static ThemeData guru() => _buildTheme(AppColors.guruPrimary);
-  static ThemeData trainer() => _buildTheme(AppColors.trainerPrimary);
+  static ThemeData guru({Brightness brightness = Brightness.light}) =>
+      _buildTheme(AppColors.guruPrimary, brightness);
 
-  static ThemeData _buildTheme(Color primary) => ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primary,
-          brightness: Brightness.light,
-        ).copyWith(primary: primary),
-        scaffoldBackgroundColor: AppColors.white,
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.grey900,
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: AppTextStyles.h2.copyWith(color: AppColors.grey900),
+  static ThemeData trainer({Brightness brightness = Brightness.light}) =>
+      _buildTheme(AppColors.trainerPrimary, brightness);
+
+  static ThemeData guruDark() => guru(brightness: Brightness.dark);
+  static ThemeData trainerDark() => trainer(brightness: Brightness.dark);
+
+  static ThemeData _buildTheme(Color primary, Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF121212) : AppColors.white;
+    final surfaceColor = isDark ? const Color(0xFF1E1E1E) : AppColors.white;
+    final cardBorder = isDark ? const Color(0xFF2C2C2C) : AppColors.grey200;
+    final inputFill = isDark ? const Color(0xFF2C2C2C) : AppColors.grey100;
+    final appBarBg = isDark ? const Color(0xFF1A1A1A) : AppColors.white;
+    final appBarFg = isDark ? AppColors.white : AppColors.grey900;
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primary,
+        brightness: brightness,
+      ).copyWith(primary: primary, surface: surfaceColor),
+      scaffoldBackgroundColor: bgColor,
+      appBarTheme: AppBarTheme(
+        backgroundColor: appBarBg,
+        foregroundColor: appBarFg,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: AppTextStyles.h2.copyWith(color: appBarFg),
+      ),
+      cardTheme: CardThemeData(
+        color: surfaceColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: cardBorder),
         ),
-        cardTheme: CardThemeData(
-          color: AppColors.white,
-          elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: inputFill,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: AppColors.white,
+          minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppColors.grey200),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.grey100,
-          border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
+          textStyle: AppTextStyles.label,
         ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: AppColors.white,
-            minimumSize: const Size.fromHeight(52),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            textStyle: AppTextStyles.label,
-          ),
+      ),
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        chipTheme: ChipThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        textTheme: const TextTheme(
-          displayLarge: AppTextStyles.h1,
-          titleLarge: AppTextStyles.h2,
-          bodyLarge: AppTextStyles.bodyLarge,
-          bodyMedium: AppTextStyles.body,
-          bodySmall: AppTextStyles.caption,
-          labelLarge: AppTextStyles.label,
-        ),
-      );
+      ),
+      textTheme: const TextTheme(
+        displayLarge: AppTextStyles.h1,
+        titleLarge: AppTextStyles.h2,
+        bodyLarge: AppTextStyles.bodyLarge,
+        bodyMedium: AppTextStyles.body,
+        bodySmall: AppTextStyles.caption,
+        labelLarge: AppTextStyles.label,
+      ),
+    );
+  }
 }

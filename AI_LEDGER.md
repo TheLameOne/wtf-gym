@@ -308,6 +308,66 @@ All entries from Entry 1 onwards were assisted by **GitHub Copilot (Claude Sonne
 
 ---
 
+## Entry 28 — Local Scheduled Push Notifications
+
+**Prompt #:** 28  
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**Intent:** Add local scheduled notifications (reminders) to both apps so users are reminded 10 minutes before an upcoming session.
+
+**Design decisions:**
+- `NotificationService` singleton created in `shared/lib/services/notification_service.dart`. Uses `flutter_local_notifications` + `timezone` packages.
+- `init()` initialises the plugin, creates the Android notification channel (`wtf_gym_reminders`, Importance.high), and requests `POST_NOTIFICATIONS` + `SCHEDULE_EXACT_ALARM` permissions at runtime.
+- `scheduleSessionReminder({requestId, scheduledFor, title, body, minutesBefore = 10})` calls `plugin.zonedSchedule` with `AndroidScheduleMode.exactAllowWhileIdle`. Is a no-op if the reminder time has already passed.
+- `cancelReminder(requestId)` allows downstream code to cancel a pending notification using the same derived `notifId`.
+- Notification ID derived as `requestId.hashCode.abs() & 0x7FFFFFFF` — stable integer from the Firestore document ID.
+- **guru_app**: reminder scheduled immediately after `CallRequestService.createRequest()` succeeds in `schedule_screen.dart`. The `requestId` is captured once and shared between both calls to keep IDs in sync.
+- **trainer_app**: reminder scheduled immediately after `CallRequestService.approveRequest()` succeeds in `requests_screen.dart`.
+- `NotificationService.instance.init()` called in both `main()` functions before `runApp`.
+- Android manifests for both apps updated with `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `USE_EXACT_ALARM` (minSdk 33), and `POST_NOTIFICATIONS` (minSdk 33).
+
+**Output snippet:**
+```dart
+// notification_service.dart
+Future<void> scheduleSessionReminder({
+  required String requestId,
+  required DateTime scheduledFor,
+  required String title,
+  required String body,
+  int minutesBefore = 10,
+}) async {
+  final reminderTime = scheduledFor.subtract(Duration(minutes: minutesBefore));
+  if (!reminderTime.isAfter(DateTime.now())) return;
+
+  await _plugin.zonedSchedule(
+    requestId.hashCode.abs() & 0x7FFFFFFF,
+    title, body,
+    tz.TZDateTime.from(reminderTime, tz.local),
+    details,
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+    payload: requestId,
+  );
+}
+```
+
+**Files changed:**
+- `shared/lib/services/notification_service.dart` (created)
+- `shared/lib/shared.dart` (export added)
+- `shared/pubspec.yaml` (`flutter_local_notifications: ^18.0.0`, `timezone: ^0.9.4`)
+- `guru_app/pubspec.yaml` (same deps)
+- `trainer_app/pubspec.yaml` (same deps)
+- `guru_app/lib/main.dart` (`NotificationService.instance.init()`)
+- `trainer_app/lib/main.dart` (`NotificationService.instance.init()`)
+- `guru_app/android/app/src/main/AndroidManifest.xml` (permissions)
+- `trainer_app/android/app/src/main/AndroidManifest.xml` (permissions)
+- `guru_app/lib/features/schedule/screens/schedule_screen.dart` (schedule on submit)
+- `trainer_app/lib/features/requests/screens/requests_screen.dart` (schedule on approve)
+
+**Commit:** `feat(notifications): local scheduled 10-min session reminders in both apps`
+
+---
+
 ## Debugging with AI
 
 Entries where AI identified root causes and provided diagnostic steps for real runtime errors.
@@ -473,4 +533,54 @@ Text(
 - `AI_LEDGER.md`
 
 **Commit:** `fix(spec): §6–§11 quality gates — copy strings, DevPanel, error snackbars, env example, ledger format`
+
+---
+
+## Entry 27 — Light/Dark Theme Toggle
+
+**Prompt #:** 27  
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**Intent:** Implement a persistent Light/Dark theme toggle in both apps.
+
+**Design decisions:**
+- `ThemeNotifier` (`StateNotifier<ThemeMode>`) created in `shared/lib/utils/theme_notifier.dart`. Persists selection to `SharedPreferences` under key `pref_theme_mode`.
+- `loadPersistedTheme()` helper called in both `main()` functions before `runApp`. The saved `ThemeMode` is injected via `ProviderScope` overrides so the correct theme is active on the very first frame (no flash of wrong theme).
+- `AppTheme` extended with `guruDark()` and `trainerDark()` static methods. Dark theme uses `Brightness.dark` colour scheme + custom surface (`#1E1E1E`), scaffold background (`#121212`), appBar (`#1A1A1A`), card border (`#2C2C2C`), and input fill (`#2C2C2C`).
+- Both `MaterialApp.router` instances now declare `theme`, `darkTheme`, and `themeMode` — Flutter handles the animated transition.
+- Toggle `IconButton` (`dark_mode` / `light_mode` icons) added to `AppBarBadge` `actions` on both home screens. Tapping calls `ref.read(themeNotifierProvider.notifier).toggle()`.
+
+**Output snippet:**
+```dart
+// theme_notifier.dart
+class ThemeNotifier extends StateNotifier<ThemeMode> {
+  Future<void> toggle() async {
+    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    state = next;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kThemeKey, next == ThemeMode.dark ? 'dark' : 'light');
+  }
+}
+
+// main.dart (both apps)
+final savedTheme = await loadPersistedTheme();
+runApp(
+  ProviderScope(
+    overrides: [themeNotifierProvider.overrideWith((_) => ThemeNotifier(savedTheme))],
+    child: const GuruApp(),
+  ),
+);
+```
+
+**Files changed:**
+- `shared/lib/utils/app_theme.dart` (dark theme builders)
+- `shared/lib/utils/theme_notifier.dart` (created)
+- `shared/lib/shared.dart` (export)
+- `guru_app/lib/main.dart` (seed theme override)
+- `trainer_app/lib/main.dart` (seed theme override)
+- `guru_app/lib/app.dart` (darkTheme + themeMode)
+- `trainer_app/lib/app.dart` (darkTheme + themeMode)
+- `guru_app/lib/features/home/screens/home_screen.dart` (toggle button)
+- `trainer_app/lib/features/home/screens/home_screen.dart` (toggle button)
+
+**Commit:** `feat(theme): light/dark toggle with SharedPreferences persistence in both apps`
 

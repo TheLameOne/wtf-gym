@@ -1,0 +1,32 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _kThemeKey = 'pref_theme_mode';
+
+class ThemeNotifier extends StateNotifier<ThemeMode> {
+  ThemeNotifier(ThemeMode initial) : super(initial);
+
+  Future<void> toggle() async {
+    final next =
+        state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    state = next;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kThemeKey, next == ThemeMode.dark ? 'dark' : 'light');
+  }
+}
+
+final themeNotifierProvider =
+    StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
+  // Synchronous default; apps call initThemeProvider() in main() to seed
+  // from SharedPreferences before the first frame.
+  return ThemeNotifier(ThemeMode.light);
+});
+
+/// Call in [main()] after [WidgetsFlutterBinding.ensureInitialized()].
+/// Returns the persisted [ThemeMode] so the [ProviderScope] override can be set.
+Future<ThemeMode> loadPersistedTheme() async {
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getString(_kThemeKey);
+  return raw == 'dark' ? ThemeMode.dark : ThemeMode.light;
+}
