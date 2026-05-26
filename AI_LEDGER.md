@@ -242,3 +242,21 @@
 
 **Files changed:** `shared/lib/models/call_request_model.dart`, `guru_app/.../my_requests_screen.dart`, `trainer_app/.../requests_screen.dart`, `guru_app/.../conversation_screen.dart`, `trainer_app/.../conversation_screen.dart`, `guru_app/.../call_screen.dart`, `trainer_app/.../call_screen.dart`, `guru_app/.../pre_join_screen.dart`, `trainer_app/.../pre_join_screen.dart`, `guru_app/.../post_call_rating_screen.dart`, `trainer_app/.../post_call_notes_screen.dart`  
 **Commit:** `feat(call): 10-min join window, camera-icon badge, name labels, note saved, Mark as Complete`
+
+---
+
+## Entry 24 — Session Logs & Insights QA & Fixes
+
+**Prompt pattern:** Verify full session logs spec: filter chips, row content, tap → detail modal, sort by latest, empty state + CTA, export share  
+**Findings:**
+
+- **Filter chips: All / Last 7 Days / This Month ✅**: `ChoiceChip` row present in both apps. Filter applied via `_matchesFilter()` on each stream emit.
+- **Sorting by latest ✅**: `SessionLogService.memberLogsStream` and `trainerLogsStream` both sort Dart-side with `b.startedAt.compareTo(a.startedAt)`.
+- **Row shows date + duration + rating ✅**: `_SessionCard` already rendered date via `toFullLabel()`, duration via `toSessionDuration()`, and star row when `rating > 0`.
+- **Tap → detail modal (both notes) ❌ → Fixed**: Cards had no tap gesture. Added `InkWell` + `chevron_right` indicator to both apps. Tapping opens `showModalBottomSheet` displaying: date, duration, star rating, member's note (`memberNotes`), and trainer's notes (`trainerNotes`). Both notes were previously visible only to one party.
+- **Export: share text summary ❌ → Fixed**: Added `share_plus: ^9.0.0` to both app pubspecs. Detail modal header has `Icons.ios_share` button that calls `Share.share()` with a multiline text summary (title, member name, date, duration, rating, member note, trainer notes).
+- **Empty state + "Schedule your first call" CTA ❌ → Fixed**: Both apps had `EmptyStateWidget` without `ctaLabel`/`onCta`. Added `ctaLabel: 'Schedule your first call'`. In `guru_app`, `onCta` navigates to `/schedule`. In `trainer_app`, `onCta` navigates to `/requests` (trainer's call management screen).
+- **Trainer card: edit notes inline ✅ (preserved)**: Kept existing `_editingNotes` StatefulWidget with `TextEditingController`. Detail modal also exposes an "Edit notes" icon that pops the sheet and triggers `setState(() => _editingNotes = true)`.
+
+**Files changed:** `guru_app/lib/features/sessions/screens/sessions_screen.dart`, `trainer_app/lib/features/sessions/screens/sessions_screen.dart`, `guru_app/pubspec.yaml`, `trainer_app/pubspec.yaml`  
+**Commit:** `feat(sessions): tap-to-detail modal, share export, schedule CTA on empty state`
