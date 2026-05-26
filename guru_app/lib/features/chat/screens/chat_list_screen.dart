@@ -4,6 +4,42 @@ import 'package:go_router/go_router.dart';
 import 'package:shared/shared.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+class _ChatEmptyState extends StatelessWidget {
+  const _ChatEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final chatId = ChatService.chatId(
+        AppConstants.memberDkId, AppConstants.trainerAaravId);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('💬', style: TextStyle(fontSize: 80)),
+            const SizedBox(height: AppSpacing.md),
+            Text('No chats yet',
+                style: AppTextStyles.h3, textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Send your first message to your trainer',
+              style: AppTextStyles.body.copyWith(color: AppColors.grey600),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            ElevatedButton.icon(
+              onPressed: () => context.push('/chat/$chatId'),
+              icon: const Text('👋'),
+              label: const Text('Say hi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ChatListScreen extends ConsumerWidget {
   const ChatListScreen({super.key});
 
@@ -24,11 +60,7 @@ class ChatListScreen extends ConsumerWidget {
           }
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
-            return const EmptyStateWidget(
-              icon: Icons.chat_bubble_outline,
-              title: 'No chats yet',
-              subtitle: 'Start a conversation with your trainer',
-            );
+            return const _ChatEmptyState();
           }
           return ListView.separated(
             itemCount: chats.length,
