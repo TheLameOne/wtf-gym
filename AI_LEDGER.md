@@ -4,6 +4,22 @@
 
 ---
 
+## Format
+
+Each entry follows this structure:
+
+| Field | Description |
+|-------|-------------|
+| **Prompt #** | Sequential entry number |
+| **Tool** | AI tool used (GitHub Copilot powered by Claude Sonnet 4.6) |
+| **Intent** | What was requested (e.g., "generate Riverpod provider for auth") |
+| **Output snippet** | Key generated or verified code block |
+| **Commit link** | `git log --oneline` SHA where the code landed |
+
+All entries from Entry 1 onwards were assisted by **GitHub Copilot (Claude Sonnet 4.6)** in VS Code.
+
+---
+
 ## Entry 1 — Workspace Exploration & Assessment Analysis
 
 **Prompt pattern:** Analyze assessment PDF, identify deliverables  
@@ -289,3 +305,172 @@
 `shared/lib/services/hms_service.dart` (onAudioDeviceChanged log),  
 `ARCHITECTURE.md` (100ms section added)  
 **Commit:** `feat(call): token-server README, trainer endRoom, lifecycle camera-pause, ARCHITECTURE 100ms docs`
+
+---
+
+## Debugging with AI
+
+Entries where AI identified root causes and provided diagnostic steps for real runtime errors.
+
+### Entry 13 — Firestore Composite Index Errors
+
+**Error encountered:**
+```
+[Cloud Firestore] FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/…
+```
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**AI diagnosis:** `orderBy` + `where` compound queries require manually-provisioned Firestore composite indexes not present in this project. Removed `orderBy` and sorted in Dart instead.  
+**AI-generated fix snippet:**
+```dart
+// Before (crashes without composite index)
+.collection('messages').where('chatId', isEqualTo: chatId).orderBy('timestamp')
+
+// After (Dart-side sort — no index required)
+.collection('messages').where('chatId', isEqualTo: chatId)
+// then in stream map:
+..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+```
+**Commit:** `fix(firestore): remove orderBy to avoid composite index requirement`
+
+---
+
+### Entry 14 — onHMSError Propagation + 20-Second Connection Timeout
+
+**Error encountered:**
+```
+Call screen stuck on "Connecting…" indefinitely after join().
+onHMSError() never surfaced the terminal SDK error.
+```
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**AI diagnosis:** `onHMSError` was an empty override — terminal errors were silently dropped. No timeout guard on join. Added error propagation and 20-second `Timer` guard.  
+**AI-generated fix snippet:**
+```dart
+@override
+void onHMSError({required HMSException error}) {
+  AppLogger.rtc('[RTC] Error: ${error.message} (code: ${error.code})');
+  if (error.isTerminal) {
+    _updateState(HMSCallState.error);
+    onError?.call(error.message ?? 'Call failed');
+  }
+}
+```
+**Commit:** `fix(call): propagate onHMSError, 20-second join timeout guard`
+
+---
+
+### Entry 15 — 100ms Role Name Fix
+
+**Error encountered:**
+```
+[100ms SDK] Error joining room: invalid role "trainer" — role does not exist in template
+```
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**AI diagnosis:** Template `6a1494d14a799ad17a8b5c54` only defines roles `host` / `guest`. Requested roles `trainer`/`member` don't exist.  
+**AI-generated fix snippet:**
+```dart
+// app_constants.dart
+static const hmsTrainerRole = 'host';
+static const hmsMemberRole  = 'guest';
+```
+**Commit:** `fix(call): use host/guest roles, add HMS_TEMPLATE_ID to env`
+
+---
+
+### Entry 16 — HTTP Timeout on Token Server Calls
+
+**Error encountered:**
+```
+Approve button spinner never resolves. http.get blocks indefinitely when token server is unreachable.
+```
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**AI-generated fix snippet:**
+```dart
+final res = await http.get(uri).timeout(const Duration(seconds: 8));
+```
+**Commit:** `fix(network): 8-second HTTP timeout on all token-server calls`
+
+---
+
+## Refactor with AI
+
+Entries where AI-driven code restructuring corrected behaviour or improved clarity.
+
+### Entry 22 — Chat Bubble Colour: Perspective-Based → Role-Based
+
+**Problem:** Bubble colour was `isFromMe`-based. In `trainer_app`, the trainer's own messages appeared blue and the member's appeared red — visually backwards.  
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**Intent:** Refactor `MessageBubble` to use sender role, not sending perspective, so colour is consistent across both apps.  
+**Before:**
+```dart
+final bubbleColor = isFromMe ? AppColors.memberBubble : AppColors.trainerBubble;
+```
+**After:**
+```dart
+// Role-based — consistent regardless of which app is rendering
+final isMemberMessage = message.senderId == AppConstants.memberDkId;
+final bubbleColor = isMemberMessage
+    ? AppColors.memberBubble   // #E3F0FF blue
+    : AppColors.trainerBubble; // #FFEBEB red
+```
+**Commit:** `fix(chat): role-based bubble colours, single-check sent tick, simulated typing, pull-to-load history`
+
+---
+
+## Entry 26 — Quality Gates & Spec Compliance Audit (§6–§11)
+
+**Prompt #:** 26  
+**Tool:** GitHub Copilot (Claude Sonnet 4.6)  
+**Intent:** Audit all spec sections §6 (Quality Gates), §7 (AI-Native Evidence), §8 (Observability/DX), §9 (Security), §10 (Performance), §11 (UI Copy) and fix every gap found.
+
+**Gaps found and fixed (11 total):**
+
+| # | Section | Gap | Fix |
+|---|---------|-----|-----|
+| 1 | §11 | Toast "Pending approval by Aarav" | → "Call requested. Waiting for trainer approval." |
+| 2 | §11 | System message only showed time | → "Call approved for May 26 at 6:00 PM." using `_formatDateTime` |
+| 3 | §11 | Declined showed "Reason: x" | → "Call request declined. Reason: x." |
+| 4 | §11 | Conversation screen had no empty state | Added "No messages yet. Start the conversation." (both apps) |
+| 5 | §11 | Pre-join missing body copy | Added "Ready to join? Check mic and camera." subtitle (both apps) |
+| 6 | §11 | No "Session saved" confirmation | Added `initState` snackbar "Session saved to your logs." (both apps) |
+| 7 | §8 | DevPanel missing env vars + build info | Added masked `token_server: http://10.0.2.2:****` + `App: WTF Guru v1.0.0` rows |
+| 8 | §8 | Error snackbars had no Copy action | Added `SnackBarAction(label: 'Copy error', …)` to all error snackbars |
+| 9 | §9 | `.env.example` missing `HMS_TEMPLATE_ID` | Added `HMS_TEMPLATE_ID=your_template_id` |
+| 10 | §7 | Ledger missing required format fields | Added Format table, Debugging section, Refactor section |
+| 11 | §7 | 0 commits with AI reference in body | All new commits include `AI-assisted: GitHub Copilot (Claude Sonnet 4.6)` body line |
+
+**Output snippet — DevPanel build info and masked env vars:**
+```dart
+// Build info row
+Text(
+  'App: ${widget.appName} v1.0.0',
+  style: const TextStyle(color: AppColors.grey400, fontSize: 10, fontFamily: 'monospace'),
+),
+// Env vars (masked)
+Text(
+  'token_server: ${_maskUrl(AppConstants.tokenServerUrl)}',
+  style: const TextStyle(color: AppColors.grey400, fontSize: 10, fontFamily: 'monospace'),
+),
+```
+
+**Files changed:**
+- `guru_app/lib/features/schedule/screens/schedule_screen.dart`
+- `guru_app/lib/features/schedule/screens/my_requests_screen.dart`
+- `shared/lib/services/call_request_service.dart`
+- `guru_app/lib/features/chat/screens/conversation_screen.dart`
+- `trainer_app/lib/features/chat/screens/conversation_screen.dart`
+- `guru_app/lib/features/call/screens/pre_join_screen.dart`
+- `trainer_app/lib/features/call/screens/pre_join_screen.dart`
+- `guru_app/lib/features/call/screens/post_call_rating_screen.dart`
+- `trainer_app/lib/features/call/screens/post_call_notes_screen.dart`
+- `shared/lib/widgets/dev_panel.dart`
+- `guru_app/lib/widgets/dev_panel_overlay.dart`
+- `trainer_app/lib/features/home/screens/home_screen.dart`
+- `guru_app/lib/features/call/screens/call_screen.dart`
+- `trainer_app/lib/features/call/screens/call_screen.dart`
+- `guru_app/lib/features/call/screens/pre_join_screen.dart` (Copy error action)
+- `trainer_app/lib/features/requests/screens/requests_screen.dart`
+- `token_server/.env.example`
+- `AI_LEDGER.md`
+
+**Commit:** `fix(spec): §6–§11 quality gates — copy strings, DevPanel, error snackbars, env example, ledger format`
+
