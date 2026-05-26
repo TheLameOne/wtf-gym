@@ -127,16 +127,18 @@ class _CallScreenState extends ConsumerState<CallScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            // Remote video
-            if (_hms.remoteVideoTracks.isNotEmpty)
+            // Remote video — skip muted tracks to avoid null-texture crash
+            if (_hms.remoteVideoTracks.values.any((t) => !t.isMute))
               Stack(
                 children: [
-                  ..._hms.remoteVideoTracks.values.map(
-                    (track) => HMSVideoView(
-                      track: track,
-                      setMirror: false,
-                    ),
-                  ),
+                  ..._hms.remoteVideoTracks.values
+                      .where((t) => !t.isMute)
+                      .map(
+                        (track) => HMSVideoView(
+                          track: track,
+                          setMirror: false,
+                        ),
+                      ),
                   Positioned(
                     bottom: AppSpacing.xl + 72,
                     left: AppSpacing.md,
@@ -172,8 +174,8 @@ class _CallScreenState extends ConsumerState<CallScreen>
                   ],
                 ),
               ),
-            // Local video pip
-            if (_hms.localVideoTrack != null)
+            // Local video pip — only render when camera is active
+            if (_hms.localVideoTrack != null && !_hms.isCameraMuted)
               Positioned(
                 top: AppSpacing.md,
                 right: AppSpacing.md,

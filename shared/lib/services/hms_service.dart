@@ -147,7 +147,13 @@ class HMSService implements HMSUpdateListener, HMSActionResultListener {
     if (track.kind == HMSTrackKind.kHMSTrackKindVideo) {
       final videoTrack = track as HMSVideoTrack;
       if (peer.isLocal) {
-        localVideoTrack = videoTrack;
+        // Clear the reference when the track is removed so HMSVideoView
+        // never receives a stale track with a released native texture.
+        if (trackUpdate == HMSTrackUpdate.trackRemoved) {
+          localVideoTrack = null;
+        } else {
+          localVideoTrack = videoTrack;
+        }
       } else {
         if (trackUpdate == HMSTrackUpdate.trackRemoved) {
           remoteVideoTracks.remove(peer.peerId);
@@ -232,6 +238,17 @@ class HMSService implements HMSUpdateListener, HMSActionResultListener {
     if (methodType == HMSActionResultListenerMethod.leave ||
         methodType == HMSActionResultListenerMethod.endRoom) {
       _updateState(HMSCallState.ended);
+      // Reset the SDK so the next build() creates a fresh HMSSDK instance.
+      // Without this, a second join() call on the same ended SDK produces
+      // stale track references → 'Video track is null for corresponding trackId'.
+      _hmsSDK.removeUpdateListener(listener: this);
+      _isBuilt = false;
+      peers.clear();
+      remoteVideoTracks.clear();
+      localVideoTrack = null;
+      localPeer = null;
+      isMicMuted = false;
+      isCameraMuted = false;
     }
   }
 
